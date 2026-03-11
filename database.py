@@ -21,12 +21,13 @@ def save_message(session_id, premise, role, message, turn_index, condition):
     supabase.table("messages_improv").insert(data).execute()
 
 
-def save_conversation(session_id, premise, chat):
+def save_conversation(session_id, premise, chat, condition):
 
     data = {
         "session_id": session_id,
         "premise": premise,
-        "conversation": chat
+        "conversation": chat,
+        "condition": condition
     }
 
-    supabase.table("improv_chat_1").insert(data).execute()
+    supabase.table("improv_chat").upsert(data).execute()
