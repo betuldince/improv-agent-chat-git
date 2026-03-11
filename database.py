@@ -30,4 +30,4 @@ def save_conversation(session_id, premise, chat, condition):
         "condition": condition
     }
 
-    supabase.table("improv_chat").upsert(data).execute()
+    supabase.table("improv_chat_1").upsert(data).execute()
