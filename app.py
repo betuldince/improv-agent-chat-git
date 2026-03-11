@@ -21,7 +21,7 @@ if "condition" not in params:
 
 condition = params["condition"]
 
-if condition not in ["A", "B"]:
+if condition not in ["A", "B", "testingA", "testingB"]:
     st.error("Invalid condition.")
     st.stop()
 
@@ -51,7 +51,7 @@ if "scenario_ready" not in st.session_state:
 
 
 
-if st.session_state.condition == "A":
+if st.session_state.condition in ["A", "testingA"]:
     orchestrator = BaselineOrchestrator(api_key=st.secrets["OPENAI_API_KEY"])
 else:
     orchestrator = Orchestrator(api_key=st.secrets["OPENAI_API_KEY"])
@@ -91,7 +91,7 @@ if st.session_state.scenario_ready and st.session_state.actor is None:
 
     if col1.button("Accept Scenario"):
 
-        if st.session_state.condition == "A":
+        if st.session_state.condition in ["A", "testingA"]:
 
             actor = BaselineActorLLM(
                 api_key=st.secrets["OPENAI_API_KEY"],
