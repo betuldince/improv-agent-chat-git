@@ -91,11 +91,7 @@ if st.session_state.scenario_ready and st.session_state.actor is None:
 
     if col1.button("Accept Scenario"):
 
-        persona = orchestrator.generate_persona(st.session_state.premise)
-
-        st.session_state.persona = persona
-
-        if st.session_state.condition == "baseline":
+        if st.session_state.condition == "A":
 
             actor = BaselineActorLLM(
                 api_key=st.secrets["OPENAI_API_KEY"],
