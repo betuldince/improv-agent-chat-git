@@ -1,5 +1,6 @@
 import streamlit as st
 import uuid
+import time
 
 from improv_agent import (
     Orchestrator,
@@ -16,7 +17,10 @@ from improv_agent_baseline import (
 from database import save_message, save_conversation
 
 
-MODEL = "gpt-5.1"
+MODEL = "gpt-4o-mini"
+
+QUALTRICS_LINK = "https://neu.co1.qualtrics.com/jfe/form/SV_3TYtAhRcMTCSe2i"
+
 
 st.title("Improv AI Partner")
 
@@ -68,6 +72,17 @@ if "scenario_ready" not in st.session_state:
     st.session_state.scenario_ready = False
 
 
+# timer state
+
+if "start_time" not in st.session_state:
+    st.session_state.start_time = None
+
+if "experiment_over" not in st.session_state:
+    st.session_state.experiment_over = False
+
+TIME_LIMIT = 100  # 10 minutes
+
+
 # -------------------------
 # Orchestrator selection
 # -------------------------
@@ -116,10 +131,6 @@ if st.session_state.scenario_ready and st.session_state.actor is None:
 
     if col1.button("Accept Scenario"):
 
-        # -------------------------
-        # BASELINE CONDITION
-        # -------------------------
-
         if st.session_state.condition in ["A", "testingA"]:
 
             actor = BaselineActorLLM(
@@ -128,10 +139,6 @@ if st.session_state.scenario_ready and st.session_state.actor is None:
             )
 
             opening = actor.opening_line()
-
-        # -------------------------
-        # INTERVENTION CONDITION
-        # -------------------------
 
         else:
 
@@ -173,7 +180,6 @@ if st.session_state.scenario_ready and st.session_state.actor is None:
             {"role": "assistant", "content": opening}
         ]
 
-        # save opening line
         save_message(
             st.session_state.session_id,
             st.session_state.premise,
@@ -183,6 +189,9 @@ if st.session_state.scenario_ready and st.session_state.actor is None:
             st.session_state.condition
         )
 
+        # start timer
+        st.session_state.start_time = time.time()
+
         st.rerun()
 
 
@@ -191,6 +200,52 @@ if st.session_state.scenario_ready and st.session_state.actor is None:
         premise = orchestrator.generate_prompt()
         st.session_state.premise = premise
         st.rerun()
+
+
+# -------------------------
+# Timer display
+# -------------------------
+
+if st.session_state.start_time is not None:
+
+    elapsed = time.time() - st.session_state.start_time
+    remaining = int(TIME_LIMIT - elapsed)
+
+    if remaining <= 0:
+        st.session_state.experiment_over = True
+
+    else:
+
+        minutes = remaining // 60
+        seconds = remaining % 60
+
+        st.markdown(
+            f"### ⏳ Time remaining: {minutes:02d}:{seconds:02d}"
+        )
+
+
+# -------------------------
+# End experiment
+# -------------------------
+
+if st.session_state.experiment_over:
+
+    st.success("The improvisation session has ended.")
+
+    st.markdown(
+        """
+### The experiment is now complete.
+
+Please continue by answering the questions in **Qualtrics**.
+"""
+    )
+
+    st.link_button(
+        "Go to Qualtrics Survey",
+        QUALTRICS_LINK
+    )
+
+    st.stop()
 
 
 # -------------------------
@@ -217,8 +272,6 @@ user_input = st.chat_input("Your response")
 
 if user_input:
 
-    # show user message
-
     st.session_state.chat.append({
         "role": "user",
         "content": user_input
@@ -238,10 +291,6 @@ if user_input:
     )
 
 
-    # -------------------------
-    # Actor response
-    # -------------------------
-
     with st.spinner("Actor is thinking..."):
 
         if st.session_state.condition in ["A", "testingA"]:
@@ -256,15 +305,12 @@ if user_input:
             )
 
 
-    # show reply
-
     st.session_state.chat.append({
         "role": "assistant",
         "content": reply
     })
 
     st.chat_message("assistant").write(reply)
-
 
     turn_index = len(st.session_state.chat)
 
@@ -276,7 +322,6 @@ if user_input:
         turn_index,
         st.session_state.condition
     )
-
 
     save_conversation(
         st.session_state.session_id,

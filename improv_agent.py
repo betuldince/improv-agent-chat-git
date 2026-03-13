@@ -229,6 +229,8 @@ Return STRICT JSON ONLY with exactly this structure:
 }
 
 Rules:
+- guidance is concise
+- don't be cringe
 - if the User response is positive lean towards giving positive guidance eventhough the traits are negative
 - Guidance must be specific to the scenario, role, and current dialogue, and CHARACTER TRAIT
 - Do not narrate actions
@@ -312,7 +314,8 @@ ACTING RULES
 - Keep the interaction natural and grounded.
 - This is strictly a 2-person scene.
 - Do not introduce new third people into the live conversation.
-- Keep responses short (strictly maximum 2 sentences).
+- Keep responses as short as possible (strictly maximum 2 sentences).
+- don't be cringe
 - Follow the director guidance .
 - Do not mention the director or the guidance.
 - Do not narrate your actions.
