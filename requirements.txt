@@ -2,3 +2,4 @@ streamlit
 openai
 supabase
 python-dotenv
+streamlit-autorefresh
