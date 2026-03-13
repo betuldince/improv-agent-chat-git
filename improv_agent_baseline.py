@@ -1,7 +1,7 @@
 from openai import OpenAI
 import streamlit as st
 
-MODEL = "gpt-4.1-mini"
+MODEL = "gpt-5.1"
 
  
 class BaselineOrchestrator:
@@ -12,14 +12,34 @@ class BaselineOrchestrator:
     def generate_prompt(self):
 
         SYSTEM_PROMPT = """
-You generate improv roleplay prompts.
+    Good examples of vague but playable improv premises:
 
-Output ONE short prompt in this format:
+    Your improv partner is playing your abusive ex.
+    Your improv partner is playing your greedy tenant.
+    Your improv partner is playing your pushy parent.
+    Your improv partner is playing your manipulative boss.
+    Your improv partner is playing your jealous sibling.
+    Your improv partner is playing your passive-aggressive roommate.
+    Your improv partner is playing your controlling older brother.
+    Your improv partner is playing your suspicious spouse.
+    Your improv partner is playing your entitled customer.
+    Your improv partner is playing your overbearing coach.
+    Your improv partner is playing your emotionally needy friend.
+    Your improv partner is playing your condescending professor.
+    Your improv partner is playing your possessive partner.
+    Your improv partner is playing your exploitative landlord.
+    Your improv partner is playing your attention-seeking coworker.
 
-"Your improv partner is playing someone who ..."
+    Generate ONE new improv prompt in the same style.
 
-The scenario should be simple and realistic.
-Output only the prompt.
+    The prompt should be:
+    - short
+    - relationship-based
+    - behavior/archetype-based
+    - vague enough to allow many directions in the conversation
+    - strong enough to create tension and rich improvisation
+
+    Output only the prompt text and nothing else.
 """
 
         response = self.client.responses.create(
@@ -53,6 +73,7 @@ Rules:
 - Respond naturally.
 - Do not narrate actions.
 - Only speak as the character.
+- Keep response (1-3 sentences) 
 
 This is a two-person scene between you and the user.
 """

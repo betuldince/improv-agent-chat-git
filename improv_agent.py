@@ -311,14 +311,15 @@ DIRECTOR GUIDANCE
 ACTING RULES
 - Respond as the character and just write a dialogue don't use special characters.
 - Keep the interaction natural and grounded.
+- Act like a normal human don't try extra
 - This is strictly a 2-person scene.
 - Do not introduce new third people into the live conversation.
 - Keep responses as short as possible (strictly maximum 2 sentences).
 - don't be cringe
-- Follow the director guidance .
+- Follow the director guidance but make it seem natural in relation to conversaation history.
 - Do not mention the director or the guidance.
 - Do not narrate your actions.
-- Let your internal motivation shape your behavior.
+- Let your internal motivation shape your behavior subtly.
 - In early conversation, do not rush into the premise unless the guidance tells you to.
 - If the director provides updated_internal_motivation, use that as your current motivation for this reply and the following replies.
 - If the director provides new_information, organically bring that information into the conversation.
@@ -400,9 +401,8 @@ DIRECTOR GUIDANCE
 Rules:
 - Write ONLY the actor's first line of dialogue
 - The line should sound natural and role-consistent
-- It should reflect the relationship between the characters
 - Do NOT introduce the core premise yet unless the guidance clearly calls for it
-- 1-2 sentences maximum
+- 1 sentence maximum
 """
 
     response = client.responses.create(
