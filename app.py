@@ -80,7 +80,7 @@ if "start_time" not in st.session_state:
 if "experiment_over" not in st.session_state:
     st.session_state.experiment_over = False
 
-TIME_LIMIT = 60  # 10 minutes
+TIME_LIMIT = 600  # 10 minutes
 
 
 # -------------------------
