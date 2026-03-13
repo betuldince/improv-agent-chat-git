@@ -342,9 +342,9 @@ ACTING RULES
         if director_guidance.get("updated_internal_motivation"):
             self.persona["internal_motivation"] = director_guidance["updated_internal_motivation"]
 
-        #print(f"\n--- Director Guidance ({self.phase}) ---\n")
-        #print(json.dumps(director_guidance, indent=2))
-        #print("\n---------------------------------------\n")
+        print(f"\n--- Director Guidance ({self.phase}) ---\n")
+        print(json.dumps(director_guidance, indent=2))
+        print("\n---------------------------------------\n")
 
         response = self.client.responses.create(
             model=MODEL,
@@ -379,9 +379,9 @@ def generate_first_line(
         history=[]
     )
 
-    #print("\n--- Director Guidance (relationship_grounding) ---\n")
-    #print(json.dumps(opening_guidance, indent=2))
-    #print("\n-------------------------------------------------\n")
+    print("\n--- Director Guidance (relationship_grounding) ---\n")
+    print(json.dumps(opening_guidance, indent=2))
+    print("\n-------------------------------------------------\n")
 
     system_prompt = f"""
 You are writing the first line of an improv scene.
