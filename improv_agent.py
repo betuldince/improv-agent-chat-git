@@ -4,7 +4,7 @@ import re
 from pathlib import Path
 import streamlit as st
 
-MODEL = "gpt-5.1"
+
 
 
 class Orchestrator:

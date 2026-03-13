@@ -5,7 +5,7 @@ import uuid
 
 from database import save_message
 from database import save_conversation
-MODEL = "gpt-4o-mini"
+MODEL = "gpt-5.1"
 
 st.title("Improv AI Partner")
 
