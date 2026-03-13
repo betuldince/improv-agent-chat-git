@@ -19,12 +19,11 @@ from improv_agent_baseline import (
 from database import save_message, save_conversation
 
 
-MODEL = "gpt-4o-mini"
+MODEL = "gpt-5.1"
 
-TIME_LIMIT = 100  # 10 minutes
+TIME_LIMIT = 60  # 10 minutes
 
 QUALTRICS_LINK = "https://neu.co1.qualtrics.com/jfe/form/SV_3TYtAhRcMTCSe2i"
-
 
 st.title("Improv AI Partner")
 
@@ -80,6 +79,26 @@ if "start_time" not in st.session_state:
 
 if "experiment_over" not in st.session_state:
     st.session_state.experiment_over = False
+
+
+# -------------------------
+# Background timer refresh
+# -------------------------
+
+if st.session_state.start_time is not None:
+    st_autorefresh(interval=2000, key="background_timer")
+
+
+# -------------------------
+# Timer check (hidden)
+# -------------------------
+
+if st.session_state.start_time is not None:
+
+    elapsed = time.time() - st.session_state.start_time
+
+    if elapsed >= TIME_LIMIT:
+        st.session_state.experiment_over = True
 
 
 # -------------------------
@@ -201,30 +220,6 @@ if st.session_state.scenario_ready and st.session_state.actor is None:
 
 
 # -------------------------
-# Timer
-# -------------------------
-
-if st.session_state.start_time is not None:
-
-    st_autorefresh(interval=1000, key="timer")
-
-    elapsed = time.time() - st.session_state.start_time
-    remaining = int(TIME_LIMIT - elapsed)
-
-    if remaining <= 0:
-        st.session_state.experiment_over = True
-
-    else:
-
-        minutes = remaining // 60
-        seconds = remaining % 60
-
-        st.markdown(
-            f"## ⏳ Time remaining: {minutes:02d}:{seconds:02d}"
-        )
-
-
-# -------------------------
 # End experiment
 # -------------------------
 
@@ -270,11 +265,7 @@ if st.session_state.actor:
 # Chat input
 # -------------------------
 
-user_input = None
-
-if not st.session_state.experiment_over:
-    user_input = st.chat_input("Your response")
-
+user_input = st.chat_input("Your response")
 
 if user_input:
 
@@ -328,7 +319,6 @@ if user_input:
         turn_index,
         st.session_state.condition
     )
-
 
     save_conversation(
         st.session_state.session_id,
