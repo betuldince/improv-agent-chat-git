@@ -1,16 +1,28 @@
 import streamlit as st
-from improv_agent import Orchestrator, ActorLLM
-from improv_agent_baseline import BaselineOrchestrator,  BaselineActorLLM
 import uuid
 
-from database import save_message
-from database import save_conversation
+from improv_agent import (
+    Orchestrator,
+    ActorLLM,
+    DirectorLLM,
+    generate_first_line
+)
+
+from improv_agent_baseline import (
+    BaselineOrchestrator,
+    BaselineActorLLM
+)
+
+from database import save_message, save_conversation
+
+
 MODEL = "gpt-5.1"
 
 st.title("Improv AI Partner")
 
+
 # -------------------------
-# Read condition from URL
+# Condition from URL
 # -------------------------
 
 params = st.query_params
@@ -21,7 +33,9 @@ if "condition" not in params:
 
 condition = params["condition"]
 
-if condition not in ["A", "B", "testingA", "testingB"]:
+valid_conditions = ["A", "B", "testingA", "testingB"]
+
+if condition not in valid_conditions:
     st.error("Invalid condition.")
     st.stop()
 
@@ -29,8 +43,9 @@ st.session_state.condition = condition
 
 
 # -------------------------
-# Session state
+# Session State
 # -------------------------
+
 if "session_id" not in st.session_state:
     st.session_state.session_id = str(uuid.uuid4())
 
@@ -43,6 +58,9 @@ if "persona" not in st.session_state:
 if "actor" not in st.session_state:
     st.session_state.actor = None
 
+if "director" not in st.session_state:
+    st.session_state.director = None
+
 if "chat" not in st.session_state:
     st.session_state.chat = []
 
@@ -50,15 +68,22 @@ if "scenario_ready" not in st.session_state:
     st.session_state.scenario_ready = False
 
 
+# -------------------------
+# Orchestrator selection
+# -------------------------
 
 if st.session_state.condition in ["A", "testingA"]:
-    orchestrator = BaselineOrchestrator(api_key=st.secrets["OPENAI_API_KEY"])
+    orchestrator = BaselineOrchestrator(
+        api_key=st.secrets["OPENAI_API_KEY"]
+    )
 else:
-    orchestrator = Orchestrator(api_key=st.secrets["OPENAI_API_KEY"])
+    orchestrator = Orchestrator(
+        api_key=st.secrets["OPENAI_API_KEY"]
+    )
 
 
 # -------------------------
-# Generate scenario
+# Generate Scenario
 # -------------------------
 
 if st.button("Generate Scenario"):
@@ -72,7 +97,7 @@ if st.button("Generate Scenario"):
 
 
 # -------------------------
-# Always show scenario
+# Show Scenario
 # -------------------------
 
 if st.session_state.premise:
@@ -91,6 +116,10 @@ if st.session_state.scenario_ready and st.session_state.actor is None:
 
     if col1.button("Accept Scenario"):
 
+        # -------------------------
+        # BASELINE CONDITION
+        # -------------------------
+
         if st.session_state.condition in ["A", "testingA"]:
 
             actor = BaselineActorLLM(
@@ -98,10 +127,21 @@ if st.session_state.scenario_ready and st.session_state.actor is None:
                 premise=st.session_state.premise
             )
 
+            opening = actor.opening_line()
+
+        # -------------------------
+        # INTERVENTION CONDITION
+        # -------------------------
+
         else:
 
-            persona = orchestrator.generate_persona(st.session_state.premise)
-            st.session_state.persona = persona
+            persona = orchestrator.generate_persona(
+                st.session_state.premise
+            )
+
+            director = DirectorLLM(
+                api_key=st.secrets["OPENAI_API_KEY"]
+            )
 
             actor = ActorLLM(
                 api_key=st.secrets["OPENAI_API_KEY"],
@@ -109,14 +149,31 @@ if st.session_state.scenario_ready and st.session_state.actor is None:
                 persona=persona
             )
 
-        st.session_state.actor = actor
+            opening = generate_first_line(
+                client=orchestrator.client,
+                director=director,
+                premise=st.session_state.premise,
+                persona=persona
+            )
 
-        opening = actor.opening_line()
+            actor.history.append({
+                "role": "assistant",
+                "content": opening
+            })
+
+            actor.actor_turn_count = 1
+
+            st.session_state.persona = persona
+            st.session_state.director = director
+
+
+        st.session_state.actor = actor
 
         st.session_state.chat = [
             {"role": "assistant", "content": opening}
         ]
-        # save opening line as first turn
+
+        # save opening line
         save_message(
             st.session_state.session_id,
             st.session_state.premise,
@@ -125,7 +182,9 @@ if st.session_state.scenario_ready and st.session_state.actor is None:
             1,
             st.session_state.condition
         )
+
         st.rerun()
+
 
     if col2.button("Regenerate Scenario"):
 
@@ -142,19 +201,24 @@ if st.session_state.actor:
 
     st.subheader("Scene")
 
-    # display existing chat
     for msg in st.session_state.chat:
+
         if msg["role"] == "assistant":
             st.chat_message("assistant").write(msg["content"])
         else:
             st.chat_message("user").write(msg["content"])
 
 
+# -------------------------
+# User input
+# -------------------------
+
 user_input = st.chat_input("Your response")
 
 if user_input:
 
     # show user message
+
     st.session_state.chat.append({
         "role": "user",
         "content": user_input
@@ -164,7 +228,6 @@ if user_input:
 
     turn_index = len(st.session_state.chat)
 
-    # save user message
     save_message(
         st.session_state.session_id,
         st.session_state.premise,
@@ -174,10 +237,27 @@ if user_input:
         st.session_state.condition
     )
 
-    with st.spinner("Actor is thinking..."):
-        reply = st.session_state.actor.respond(user_input)
 
-    # show AI message
+    # -------------------------
+    # Actor response
+    # -------------------------
+
+    with st.spinner("Actor is thinking..."):
+
+        if st.session_state.condition in ["A", "testingA"]:
+
+            reply = st.session_state.actor.respond(user_input)
+
+        else:
+
+            reply = st.session_state.actor.respond(
+                user_input,
+                director=st.session_state.director
+            )
+
+
+    # show reply
+
     st.session_state.chat.append({
         "role": "assistant",
         "content": reply
@@ -185,8 +265,9 @@ if user_input:
 
     st.chat_message("assistant").write(reply)
 
+
     turn_index = len(st.session_state.chat)
-    # SAVE AI MESSAGE
+
     save_message(
         st.session_state.session_id,
         st.session_state.premise,
@@ -196,9 +277,10 @@ if user_input:
         st.session_state.condition
     )
 
+
     save_conversation(
         st.session_state.session_id,
         st.session_state.premise,
         st.session_state.chat,
         st.session_state.condition
-    )    
+    )
