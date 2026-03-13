@@ -188,7 +188,6 @@ The scene phases are:
 1. relationship_grounding
 Goal:
 - begin with ordinary conversation starter
-- reflect the relationship between the characters
 - establish who/what/where
 - do not introduce the core premise yet
 

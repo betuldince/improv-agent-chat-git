@@ -2,8 +2,6 @@ import streamlit as st
 import uuid
 import time
 
-from streamlit_autorefresh import st_autorefresh
-
 from improv_agent import (
     Orchestrator,
     ActorLLM,
@@ -21,9 +19,8 @@ from database import save_message, save_conversation
 
 MODEL = "gpt-5.1"
 
-TIME_LIMIT = 60  # 10 minutes
-
 QUALTRICS_LINK = "https://neu.co1.qualtrics.com/jfe/form/SV_3TYtAhRcMTCSe2i"
+
 
 st.title("Improv AI Partner")
 
@@ -74,31 +71,16 @@ if "chat" not in st.session_state:
 if "scenario_ready" not in st.session_state:
     st.session_state.scenario_ready = False
 
+
+# timer state
+
 if "start_time" not in st.session_state:
     st.session_state.start_time = None
 
 if "experiment_over" not in st.session_state:
     st.session_state.experiment_over = False
 
-
-# -------------------------
-# Background timer refresh
-# -------------------------
-
-if st.session_state.start_time is not None:
-    st_autorefresh(interval=2000, key="background_timer")
-
-
-# -------------------------
-# Timer check (hidden)
-# -------------------------
-
-if st.session_state.start_time is not None:
-
-    elapsed = time.time() - st.session_state.start_time
-
-    if elapsed >= TIME_LIMIT:
-        st.session_state.experiment_over = True
+TIME_LIMIT = 600  # 10 minutes
 
 
 # -------------------------
@@ -207,6 +189,7 @@ if st.session_state.scenario_ready and st.session_state.actor is None:
             st.session_state.condition
         )
 
+        # start timer
         st.session_state.start_time = time.time()
 
         st.rerun()
@@ -217,6 +200,28 @@ if st.session_state.scenario_ready and st.session_state.actor is None:
         premise = orchestrator.generate_prompt()
         st.session_state.premise = premise
         st.rerun()
+
+
+# -------------------------
+# Timer display
+# -------------------------
+
+if st.session_state.start_time is not None:
+
+    elapsed = time.time() - st.session_state.start_time
+    remaining = int(TIME_LIMIT - elapsed)
+
+    if remaining <= 0:
+        st.session_state.experiment_over = True
+
+    else:
+
+        minutes = remaining // 60
+        seconds = remaining % 60
+
+        st.markdown(
+            f"### ⏳ Time remaining: {minutes:02d}:{seconds:02d}"
+        )
 
 
 # -------------------------
@@ -232,13 +237,11 @@ if st.session_state.experiment_over:
 ### The experiment is now complete.
 
 Please continue by answering the questions in **Qualtrics**.
-
-Thank you for participating.
 """
     )
 
     st.link_button(
-        "Continue to Qualtrics Survey",
+        "Go to Qualtrics Survey",
         QUALTRICS_LINK
     )
 
@@ -262,7 +265,7 @@ if st.session_state.actor:
 
 
 # -------------------------
-# Chat input
+# User input
 # -------------------------
 
 user_input = st.chat_input("Your response")
