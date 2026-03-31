@@ -13,7 +13,7 @@ from agent import (
 # CONFIG
 # =========================================================
 
-ROUND_TIME_LIMIT = 7 * 60  # 7 minutes in seconds
+ROUND_TIME_LIMIT = 20  # 7 minutes in seconds
 
 
 # =========================================================

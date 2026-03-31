@@ -10,7 +10,7 @@ from openai import OpenAI
 # CONFIG
 # =========================================================
 
-MODEL = "gpt-5.4-mini"
+MODEL = "gpt-5.1"
 DIRECTOR_RECENT_TURNS = 6
 
 
