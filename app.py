@@ -9,6 +9,7 @@ from agent import (
     director_step,
     actor_reply,
 )
+from database import save_round_transcripts
 
 
 # =========================================================
@@ -55,6 +56,7 @@ def init_state() -> None:
         "pending_user_text": None,
         "awaiting_actor_response": False,
         "generated_id": None,
+        "results_saved": False,
     }
 
     for key, value in defaults.items():
@@ -75,7 +77,7 @@ def init_condition_from_query_params() -> None:
     condition = str(condition).strip().upper()
 
     if condition not in ["A", "B"]:
-        condition = "A"
+        condition = condition
 
     st.session_state.study_condition = condition
 
@@ -119,6 +121,7 @@ def start_study() -> None:
     st.session_state.current_round_index = 0
     st.session_state.round_logs = []
     st.session_state.generated_id = None
+    st.session_state.results_saved = False
     start_round(0)
 
 
@@ -132,10 +135,6 @@ def archive_current_round(reason: str) -> None:
     st.session_state.round_logs.append(
         {
             "round_number": scenario["round_number"],
-            "user_role": scenario["user_role"],
-            "actor_role": scenario["actor_role"],
-            "prompt": scenario["prompt"],
-            "end_reason": reason,
             "messages": st.session_state.messages.copy(),
         }
     )
@@ -385,10 +384,12 @@ if not st.session_state.study_started and not st.session_state.study_finished:
         st.info(
             "In this study, you will improvise with an AI agent. On the left side of the screen, you will see your assigned role, your AI partner’s role, and the scenario you will act out. Your impelling action is your goal in the scene, and your suggested tactic is an action word that may help guide your next dialogue line. You can press the record button to record your response. Your speech will be transcribed and sent to your AI improv partner. After some time, the study will move to the next round, where you will receive a different scenario, role, and goal. After 3 rounds, the improvisation part will be over, and you will be asked to return to the Qualtrics tab and **enter the generated ID**."
         )
-    else:
+    elif st.session_state.study_condition == "B":
         st.info(
             "In this study, you will improvise with an AI agent. On the left side of the screen, you will see your assigned role, your AI partner’s role, and the scenario for the scene. You can press the record button to record your line. Your speech will be transcribed and sent to your AI improv partner. After some time, you will move to the next round, where you will receive a different scenario, role, and goal. After 3 rounds, the improvisation part will be over, and you will be asked to return to the Qualtrics tab and **enter the generated ID**."
         )
+    else:
+        st.warning("Condition not recognized. Use ?condition=A or ?condition=B in the URL.")
 
     if st.button("Start study"):
         try:
@@ -403,6 +404,20 @@ if not st.session_state.study_started and not st.session_state.study_finished:
     st.stop()
 
 if st.session_state.study_finished:
+    if (
+        not st.session_state.results_saved
+        and st.session_state.study_condition in ["A", "B"]
+    ):
+        try:
+            save_round_transcripts(
+                participant_id=st.session_state.generated_id,
+                study_condition=st.session_state.study_condition,
+                round_logs=st.session_state.round_logs,
+            )
+            st.session_state.results_saved = True
+        except Exception as e:
+            st.error(f"Could not save study results: {str(e)}")
+
     st.success("The study is finished.")
 
     st.markdown(
@@ -421,21 +436,9 @@ if st.session_state.study_finished:
 
     st.info("Please return to the Qualtrics tab and enter this generated ID.")
 
-    st.subheader("Round summaries")
-
-    for log in st.session_state.round_logs:
-        st.write(
-            f"Round {log['round_number']} | "
-            f"{log['user_role']} vs {log['actor_role']} | "
-            f"Ended because: {log['end_reason']}"
-        )
-
-        with st.expander(f"Transcript for round {log['round_number']}"):
-            for msg in log["messages"]:
-                speaker = log["actor_role"] if msg["role"] == "assistant" else "You"
-                st.write(f"{speaker}: {msg['content']}")
-
- 
+    if st.button("Restart full study"):
+        st.session_state.clear()
+        st.rerun()
 
     st.stop()
 

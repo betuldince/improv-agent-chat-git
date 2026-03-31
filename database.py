@@ -1,33 +1,26 @@
 from supabase import create_client
 import streamlit as st
-import datetime
-
-url = st.secrets["SUPABASE_URL"]
-key = st.secrets["SUPABASE_KEY"]
-
-supabase = create_client(url, key)
-
-def save_message(session_id, premise, role, message, turn_index, condition):
-
-    data = {
-        "session_id": session_id,
-        "premise": premise,
-        "role": role,
-        "message": message,
-        "turn_index": turn_index,
-        "condition": condition
-    }
-
-    supabase.table("messages_improv").insert(data).execute()
 
 
-def save_conversation(session_id, premise, chat, condition):
+def get_supabase():
+    url = st.secrets["SUPABASE_URL"]
+    key = st.secrets["SUPABASE_KEY"]
+    return create_client(url, key)
 
-    data = {
-        "session_id": session_id,
-        "premise": premise,
-        "conversation": chat,
-        "condition": condition
-    }
 
-    supabase.table("improv_chat_1").upsert(data).execute()
+def save_round_transcripts(participant_id: str, study_condition: str, round_logs: list) -> None:
+    supabase = get_supabase()
+
+    rows = []
+    for log in round_logs:
+        rows.append(
+            {
+                "participant_id": participant_id,
+                "study_condition": study_condition,
+                "round_number": log["round_number"],
+                "transcript": log["messages"],
+            }
+        )
+
+    if rows:
+        supabase.table("improv_round_transcripts").insert(rows).execute()
