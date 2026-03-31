@@ -125,8 +125,7 @@ SCENARIOS: List[Dict[str, Any]] = [
         "user_role": "Younger sibling",
         "actor_role": "Older sister",
         "prompt": (
-            "You are playing a younger sibling who tries to sneak into a bar with "
-            "a fake ID and you try to convince your older sibling."
+            "You are playing a younger sibling who wants to sneak into a bar using a fake ID, and you are trying to persuade your older sister to let you go with her"
         ),
         "show_to_user": {
             "prompt": True,
