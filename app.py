@@ -435,9 +435,7 @@ if st.session_state.study_finished:
                 speaker = log["actor_role"] if msg["role"] == "assistant" else "You"
                 st.write(f"{speaker}: {msg['content']}")
 
-    if st.button("Restart full study"):
-        st.session_state.clear()
-        st.rerun()
+ 
 
     st.stop()
 
