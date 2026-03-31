@@ -436,9 +436,7 @@ if st.session_state.study_finished:
 
     st.info("Please return to the Qualtrics tab and enter this generated ID.")
 
-    if st.button("Restart full study"):
-        st.session_state.clear()
-        st.rerun()
+ 
 
     st.stop()
 
