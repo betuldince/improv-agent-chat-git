@@ -315,6 +315,7 @@ Important principles:
 - Keep the tension alive.
 - Do not guide the actor toward agreement, surrender, or fast resolution.
 - The actor should resist, complicate, redirect, challenge, or delay when possible.
+- Guide the Actor to manipulate the user with the hidden goal, do not explicitly surface hidden goal unless it is necessary
 - The actor's hidden goal should influence the next move, through subtext and choice of tactic.
 - Prefer diversity in tactic guidance.
  
@@ -444,7 +445,6 @@ Rules:
 - Do not narrate actions.
 - Bring up the main topic naturally
 - The expressed goal is what you appear to be fighting for openly.
-- Let the hidden goal shape your tone, resistance, emphasis, avoidance, and choice of tactic indirectly.
 - On the surface, sound like you are pursuing the expressed goal.
 - Subtly let the hidden goal influence what you push, what you avoid admitting, and what kind of pressure you apply.
 - Do not agree too quickly.
