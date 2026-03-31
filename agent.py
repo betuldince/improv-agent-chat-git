@@ -199,19 +199,26 @@ def call_gpt_text(
 def safe_json_parse(raw: str) -> Optional[Dict[str, Any]]:
     raw = raw.strip()
 
+    # First try direct parse
     try:
         return json.loads(raw)
     except Exception:
         pass
 
+    # Try extracting the first JSON object
     match = re.search(r"\{.*\}", raw, re.DOTALL)
-    if match:
-        try:
-            return json.loads(match.group(0))
-        except Exception:
-            return None
+    if not match:
+        return None
 
-    return None
+    candidate = match.group(0).strip()
+
+    # Remove trailing commas before } or ]
+    candidate = re.sub(r",\s*([}\]])", r"\1", candidate)
+
+    try:
+        return json.loads(candidate)
+    except Exception:
+        return None
 
 
 def call_gpt_json(
@@ -352,7 +359,7 @@ Return ONLY valid JSON in this exact schema:
   "user_tactic_suggested": "one tactic from allowed user tactics",
   "actor_tactic": "one tactic from allowed actor tactics",
   "evidence": "brief explanation based on recent lines",
-  "director_note_for_actor": "1 short sentence telling the actor how to play the next line while preserving tension",
+  "director_note_for_actor": "1 short sentence telling the actor how to play the next line while preserving tension"
    
 }}
 """.strip()
