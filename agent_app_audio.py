@@ -13,7 +13,7 @@ from agent import (
 # CONFIG
 # =========================================================
 
-ROUND_TIME_LIMIT = 7 * 60  # 7 minutes in seconds
+ROUND_TIME_LIMIT = 100  # 7 minutes in seconds
 
 
 # =========================================================
@@ -39,7 +39,6 @@ def init_state() -> None:
         "last_audio_id": None,
         "audio_input_version": 0,
         "round_start_time": None,
-        "study_condition": None,
     }
 
     for key, value in defaults.items():
@@ -47,37 +46,8 @@ def init_state() -> None:
             st.session_state[key] = value
 
 
-def init_condition_from_query_params() -> None:
-    if st.session_state.study_condition is not None:
-        return
-
-    params = st.query_params
-    condition = params.get("condition", "A")
-
-    if isinstance(condition, list):
-        condition = condition[0]
-
-    condition = str(condition).strip().upper()
-
-    if condition not in ["A", "B"]:
-        condition = "A"
-
-    st.session_state.study_condition = condition
-
-
 def get_current_scenario():
     return SCENARIOS[st.session_state.current_round_index]
-
-
-def get_display_scenario():
-    scenario = get_current_scenario().copy()
-    scenario["show_to_user"] = scenario["show_to_user"].copy()
-
-    if st.session_state.study_condition == "B":
-        scenario["show_to_user"]["user_impelling_action"] = False
-        scenario["show_to_user"]["show_tactic"] = False
-
-    return scenario
 
 
 def reset_round_state() -> None:
@@ -322,7 +292,6 @@ st.set_page_config(
 )
 
 init_state()
-init_condition_from_query_params()
 client = create_client(st.secrets["OPENAI_API_KEY"])
 
 st.title("Improv Agent Study")
@@ -363,7 +332,7 @@ if st.session_state.study_finished:
 
     st.stop()
 
-scenario = get_display_scenario()
+scenario = get_current_scenario()
 
 check_round_timeout(client)
 
@@ -394,10 +363,12 @@ if audio_value is not None:
                 st.session_state.last_error = "Transcription came back empty."
             else:
                 st.session_state.last_audio_id = current_audio_id
-                process_user_turn(client, get_current_scenario(), transcript_text)
+                process_user_turn(client, scenario, transcript_text)
 
+                # After each rerun-producing interaction, check whether round time is over
                 check_round_timeout(client)
 
+                # Reset the audio recorder widget after a successful turn
                 st.session_state.audio_input_version += 1
                 st.session_state.last_audio_id = None
 
