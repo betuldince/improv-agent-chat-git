@@ -13,7 +13,7 @@ from agent import (
 # CONFIG
 # =========================================================
 
-ROUND_TIME_LIMIT = 20  # 7 minutes in seconds
+ROUND_TIME_LIMIT = 7 * 60  # 7 minutes in seconds
 
 
 # =========================================================
@@ -40,6 +40,8 @@ def init_state() -> None:
         "audio_input_version": 0,
         "round_start_time": None,
         "study_condition": None,
+        "pending_user_text": None,
+        "awaiting_actor_response": False,
     }
 
     for key, value in defaults.items():
@@ -94,6 +96,8 @@ def reset_round_state() -> None:
     st.session_state.last_audio_id = None
     st.session_state.audio_input_version = 0
     st.session_state.round_start_time = None
+    st.session_state.pending_user_text = None
+    st.session_state.awaiting_actor_response = False
 
 
 def start_study() -> None:
@@ -223,8 +227,9 @@ def open_scene_with_actor(client, scenario) -> None:
     st.session_state.round_start_time = time.time()
 
 
-def process_user_turn(client, scenario, user_text: str) -> None:
-    st.session_state.messages.append({"role": "user", "content": user_text})
+def generate_pending_actor_response(client, scenario) -> None:
+    if not st.session_state.awaiting_actor_response:
+        return
 
     director_out = director_step(
         client=client,
@@ -260,6 +265,8 @@ def process_user_turn(client, scenario, user_text: str) -> None:
     )
 
     st.session_state.messages.append({"role": "assistant", "content": actor_text})
+    st.session_state.awaiting_actor_response = False
+    st.session_state.pending_user_text = None
 
 
 # =========================================================
@@ -324,27 +331,22 @@ st.set_page_config(
 st.markdown(
     """
     <style>
-    /* Main page text */
     html, body, [class*="css"]  {
         font-size: 22px;
     }
 
-    /* Sidebar text */
     section[data-testid="stSidebar"] * {
         font-size: 20px !important;
     }
 
-    /* Chat messages */
     [data-testid="stChatMessage"] {
         font-size: 22px !important;
     }
 
-    /* Buttons */
     .stButton > button {
         font-size: 20px !important;
     }
 
-    /* Audio input label / general labels */
     label, .stMarkdown, .stText, p {
         font-size: 22px !important;
     }
@@ -352,7 +354,6 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
-
 
 init_state()
 init_condition_from_query_params()
@@ -398,6 +399,16 @@ if st.session_state.study_finished:
 
 scenario = get_display_scenario()
 
+if st.session_state.awaiting_actor_response:
+    render_sidebar(scenario, client)
+    st.divider()
+    render_conversation(scenario)
+
+    with st.spinner("Generating response..."):
+        generate_pending_actor_response(client, get_current_scenario())
+
+    st.rerun()
+
 check_round_timeout(client)
 
 render_sidebar(scenario, client)
@@ -427,7 +438,11 @@ if audio_value is not None:
                 st.session_state.last_error = "Transcription came back empty."
             else:
                 st.session_state.last_audio_id = current_audio_id
-                process_user_turn(client, get_current_scenario(), transcript_text)
+
+                # show user transcript immediately
+                st.session_state.messages.append({"role": "user", "content": transcript_text})
+                st.session_state.pending_user_text = transcript_text
+                st.session_state.awaiting_actor_response = True
 
                 check_round_timeout(client)
 
