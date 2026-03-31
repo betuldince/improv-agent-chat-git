@@ -1,7 +1,7 @@
 import streamlit as st
 import time
 
-from agent import (
+from agent_app_audio import (
     SCENARIOS,
     create_client,
     director_step,
