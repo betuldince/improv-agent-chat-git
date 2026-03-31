@@ -366,11 +366,12 @@ if not st.session_state.study_started and not st.session_state.study_finished:
 
     if st.session_state.study_condition == "A":
         st.info(
-            "In this study, you will improvise with an AI agent. On the left side of the screen, you will see your assigned role, your AI partner’s role, and the scenario you will act out. Your impelling action is your goal in the scene, and your suggested tactic is an action word that may help guide your next dialogue line. You can press the record button to record your response. Your speech will be transcribed and sent to your AI improv partner. After some time, the study will move to the next round, where you will receive a different scenario, role, and goal. After 3 rounds, the improvisation part will be over, and you will be asked to return to Qualtrics tab and enter the generated ID."
+            "In this study, you will improvise with an AI agent. On the left side of the screen, you will see your assigned role, your AI partner’s role, and the scenario you will act out. Your impelling action is your goal in the scene, and your suggested tactic is an action word that may help guide your next dialogue line. You can press the record button to record your response. Your speech will be transcribed and sent to your AI improv partner. After some time, the study will move to the next round, where you will receive a different scenario, role, and goal. After 3 rounds, the improvisation part will be over, and you will be asked to return to Qualtrics tab and **enter the generated ID**."
         )
     else:
         st.info(
-            "In this study, you will improvise with an AI agent. On the left side of the screen, you will see your assigned role, your AI partner’s role, and the scenario for the scene. You can press the record button to record your line. Your speech will be transcribed and sent to your AI improv partner. After some time, you will move to the next round, where you will receive a different scenario, role, and goal. After 3 rounds, the improvisation part will be over, and you will be asked to return to Qualtrics tab and enter the generated ID."
+            "In this study, you will improvise with an AI agent. On the left side of the screen, you will see your assigned role, your AI partner’s role, and the scenario for the scene. You can press the record button to record your line. Your speech will be transcribed and sent to your AI improv partner. After some time, you will move to the next round, where you will receive a different scenario, role, and goal. After 3 rounds, the improvisation part will be over, and you will be asked to return to Qualtrics tab and **enter the generated ID**."
+    
         )
 
     if st.button("Start study"):
