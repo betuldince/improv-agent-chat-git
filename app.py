@@ -321,6 +321,39 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+st.markdown(
+    """
+    <style>
+    /* Main page text */
+    html, body, [class*="css"]  {
+        font-size: 22px;
+    }
+
+    /* Sidebar text */
+    section[data-testid="stSidebar"] * {
+        font-size: 20px !important;
+    }
+
+    /* Chat messages */
+    [data-testid="stChatMessage"] {
+        font-size: 22px !important;
+    }
+
+    /* Buttons */
+    .stButton > button {
+        font-size: 20px !important;
+    }
+
+    /* Audio input label / general labels */
+    label, .stMarkdown, .stText, p {
+        font-size: 22px !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+
 init_state()
 init_condition_from_query_params()
 client = create_client(st.secrets["OPENAI_API_KEY"])
