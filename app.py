@@ -1,5 +1,7 @@
 import streamlit as st
 import time
+import secrets
+import string
 
 from agent import (
     SCENARIOS,
@@ -14,6 +16,16 @@ from agent import (
 # =========================================================
 
 ROUND_TIME_LIMIT = 7 * 60  # 7 minutes in seconds
+
+
+# =========================================================
+# HELPERS
+# =========================================================
+
+def generate_participant_id() -> str:
+    letters = ''.join(secrets.choice(string.ascii_uppercase) for _ in range(3))
+    numbers = ''.join(secrets.choice(string.digits) for _ in range(4))
+    return f"{letters}{numbers}"
 
 
 # =========================================================
@@ -42,6 +54,7 @@ def init_state() -> None:
         "study_condition": None,
         "pending_user_text": None,
         "awaiting_actor_response": False,
+        "generated_id": None,
     }
 
     for key, value in defaults.items():
@@ -105,6 +118,7 @@ def start_study() -> None:
     st.session_state.study_finished = False
     st.session_state.current_round_index = 0
     st.session_state.round_logs = []
+    st.session_state.generated_id = None
     start_round(0)
 
 
@@ -134,6 +148,9 @@ def move_to_next_round(reason: str = "manual_next_round") -> None:
     if next_index >= len(SCENARIOS):
         st.session_state.study_finished = True
         st.session_state.study_started = False
+
+        if st.session_state.generated_id is None:
+            st.session_state.generated_id = generate_participant_id()
         return
 
     start_round(next_index)
@@ -366,12 +383,11 @@ if not st.session_state.study_started and not st.session_state.study_finished:
 
     if st.session_state.study_condition == "A":
         st.info(
-            "In this study, you will improvise with an AI agent. On the left side of the screen, you will see your assigned role, your AI partner’s role, and the scenario you will act out. Your impelling action is your goal in the scene, and your suggested tactic is an action word that may help guide your next dialogue line. You can press the record button to record your response. Your speech will be transcribed and sent to your AI improv partner. After some time, the study will move to the next round, where you will receive a different scenario, role, and goal. After 3 rounds, the improvisation part will be over, and you will be asked to return to Qualtrics tab and **enter the generated ID**."
+            "In this study, you will improvise with an AI agent. On the left side of the screen, you will see your assigned role, your AI partner’s role, and the scenario you will act out. Your impelling action is your goal in the scene, and your suggested tactic is an action word that may help guide your next dialogue line. You can press the record button to record your response. Your speech will be transcribed and sent to your AI improv partner. After some time, the study will move to the next round, where you will receive a different scenario, role, and goal. After 3 rounds, the improvisation part will be over, and you will be asked to return to the Qualtrics tab and **enter the generated ID**."
         )
     else:
         st.info(
-            "In this study, you will improvise with an AI agent. On the left side of the screen, you will see your assigned role, your AI partner’s role, and the scenario for the scene. You can press the record button to record your line. Your speech will be transcribed and sent to your AI improv partner. After some time, you will move to the next round, where you will receive a different scenario, role, and goal. After 3 rounds, the improvisation part will be over, and you will be asked to return to Qualtrics tab and **enter the generated ID**."
-    
+            "In this study, you will improvise with an AI agent. On the left side of the screen, you will see your assigned role, your AI partner’s role, and the scenario for the scene. You can press the record button to record your line. Your speech will be transcribed and sent to your AI improv partner. After some time, you will move to the next round, where you will receive a different scenario, role, and goal. After 3 rounds, the improvisation part will be over, and you will be asked to return to the Qualtrics tab and **enter the generated ID**."
         )
 
     if st.button("Start study"):
@@ -388,6 +404,23 @@ if not st.session_state.study_started and not st.session_state.study_finished:
 
 if st.session_state.study_finished:
     st.success("The study is finished.")
+
+    st.markdown(
+        f"""
+        <div style="
+            text-align: center;
+            font-size: 34px;
+            font-weight: bold;
+            padding: 20px 0;
+        ">
+            Your generated ID: {st.session_state.generated_id}
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    st.info("Please return to the Qualtrics tab and enter this generated ID.")
+
     st.subheader("Round summaries")
 
     for log in st.session_state.round_logs:
@@ -450,7 +483,6 @@ if audio_value is not None:
             else:
                 st.session_state.last_audio_id = current_audio_id
 
-                # show user transcript immediately
                 st.session_state.messages.append({"role": "user", "content": transcript_text})
                 st.session_state.pending_user_text = transcript_text
                 st.session_state.awaiting_actor_response = True
