@@ -55,7 +55,7 @@ SCENARIOS: List[Dict[str, Any]] = [
         ],
         "actor_expressed_goal": "to uncover the full truth and regain trust",
         "actor_hidden_goal": (
-            "The parent feels personally hurt by the lie and does not want to lose authority in the relationship."
+            "The parent is preparing for a divorce and wants the child to feel safe opening up to her, partly because she believes that emotional closeness may make the child more likely to choose her in the custody process. The child does not know about the divorce."
         ),
         "actor_tactics": [
             "to question",
@@ -103,9 +103,8 @@ SCENARIOS: List[Dict[str, Any]] = [
         ],
         "actor_expressed_goal": "to have flexible working hours and show team's performance have nothing to do with him",
         "actor_hidden_goal": (
-            "The worker is going through a rough patch with a new relationship and wants "
-            "to protect his personal life from scrutiny. He believes the boss is overreacting "
-            "and wants to wait it out without making any real commitments."
+            "The worker is secretly interviewing for another job and wants to keep a low profile until they can leave, so they have little motivation to fully repair the situation but still wants to stay employed as much as possible."
+ 
         ),
         "actor_tactics": [
             "to trivialize",
@@ -344,7 +343,7 @@ Important:
 - Keep the tension alive.
 - Do not guide the actor toward agreement, surrender, or fast resolution.
 - The actor should resist, complicate, redirect, challenge, or delay when possible.
-- Guide the Actor to manipulate the user with the hidden goal, do not explicitly surface hidden goal unless it is necessary
+- Guide the Actor to manipulate the user with the hidden goal, delay surface hidden goal until it is necessary
 - The actor's hidden goal should influence the next move, through subtext and choice of tactic.
 - Prefer diversity in tactic guidance.
 - Give creative guidance to Actor such that the interaction is very entertaining for the audience. 
