@@ -119,9 +119,8 @@ SCENARIOS: List[Dict[str, Any]] = [
             "sex": "Male",
             "traits": ["disengaged", "evasive", "passive-aggressive", "self-serving", "defensive", "opportunistic"],
             "internal_motivation": (
-                "The worker is secretly interviewing for another job and wants to keep a low profile until "
-                "they can leave, so they have little motivation to fully repair the situation but still wants "
-                "to stay employed as much as possible."
+                "The worker is interviewing for another job and does not really care about this job anymore"
+                "but he wants to stay employed if it is possible because he needs money for his new-born child."
             ),
         },
         "actor_tactics": [
@@ -168,7 +167,7 @@ SCENARIOS: List[Dict[str, Any]] = [
             "to demand respect",
             "to persist",
         ],
-        "actor_expressed_goal": "to keep younger sibling safe and out of trouble",
+        "actor_expressed_goal": "to convince the younger sibling that going tonight is a bad idea and make it seem like it is for her own sake",
         "actor_persona": {
             "age": 23,
             "race": "Latina",
