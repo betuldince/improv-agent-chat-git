@@ -5,7 +5,7 @@ import string
 
 from agent import (
     SCENARIOS,
-    TURN_NUM,
+    get_turn_num,
     create_client,
     director_step,
     actor_reply,
@@ -239,7 +239,7 @@ def open_scene_with_actor(client, scenario) -> None:
         scenario=scenario,
         messages=[],
         actor_tactic=director_out["actor_tactic"],
-        turn_num=TURN_NUM,
+        turn_num=get_turn_num(),
         opening_line=True,
     )
 
@@ -281,7 +281,7 @@ def generate_pending_actor_response(client, scenario) -> None:
         scenario=scenario,
         messages=st.session_state.messages,
         actor_tactic=director_out["actor_tactic"],
-        turn_num=TURN_NUM,
+        turn_num=get_turn_num(),
         opening_line=False,
     )
 

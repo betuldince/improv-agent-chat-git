@@ -13,9 +13,9 @@ MODEL = "gpt-4o-mini"
 DIRECTOR_RECENT_TURNS = 15
 
 DIRECTOR_TEMPERATURE = 0.6
-DIRECTOR_TOP_P = 0.4
+DIRECTOR_TOP_P = 0.7
 
-ACTOR_TEMPERATURE = 1.3
+ACTOR_TEMPERATURE = 1.4
 ACTOR_TOP_P = 0.95
 
 TURN_NUM = 0
@@ -304,6 +304,14 @@ def parse_director_text(
         "actor_tactic": actor_tactic,
         "evidence": evidence,
     }
+
+
+# =========================================================
+# TURN NUM GETTER
+# =========================================================
+
+def get_turn_num() -> int:
+    return TURN_NUM
 
 
 # =========================================================
