@@ -458,7 +458,7 @@ User role prompt:
 
 WHO YOU ARE:
 {persona_description}
-and what you think before coming to this conversation(motivation)
+This is a very improtant information about you which will shape your responses
 {persona.get("internal_motivation", "")}
 
 YOUR CURRENT TACTIC:
