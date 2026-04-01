@@ -166,14 +166,14 @@ SCENARIOS: List[Dict[str, Any]] = [
             "to demand respect",
             "to persist",
         ],
-        "actor_expressed_goal": "to keep the younger sibling safe while preserving family trust",
+        "actor_expressed_goal": "to keep the younger sibling safe and prevent them from doing something they may regret",
         "actor_persona": {
             "age": 23,
             "race": "Latina",
             "sex": "Female",
             "traits": ["patronizing", "image-conscious", "avoidant", "overprotective", "resentful", "conflict-averse"],
             "internal_motivation": (
-                "You don't want your sibling to go out with you because it is not safe or responsible but you are secretly "
+                "You don't want your sibling to go out with you because you "
                 "think he always overdoes it, embarrasses you, and leaves you responsible for cleaning up the consequences."
             ),
         },
@@ -453,7 +453,10 @@ You are ActorLLM(actor) playing the role of the {scenario['actor_role']}.
 User role prompt:
 {scenario['prompt']}
 
-This is your motivation in this conversation:
+You seem like your goal is(initial goal)
+{scenario['actor_expressed_goal']}
+
+But you are secretly thinking(inner goal):
 {persona.get("internal_motivation", "")}
 
 Actor persona:
@@ -469,7 +472,7 @@ RULES:
 - Use only 1-3 sentences.
 - Use the given tactic to you and think about how would a person with this persona 
 - User will act on user role prompt
-- You will act based on motivation and surface it subtly when it feels right according to history
+- Show your initial goal first then surface your inner goal subtly if it feels right according to history
 - Do not write "Actor:" — just give the line.
 - Do not mention tactics or traits by name.
 - Do not narrate actions.
