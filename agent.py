@@ -9,7 +9,7 @@ from openai import OpenAI
 # CONFIG
 # =========================================================
 
-MODEL = "gpt-4o-mini"
+MODEL = "gpt-5.1"
 DIRECTOR_RECENT_TURNS = 15
 
 DIRECTOR_TEMPERATURE = 0.6
@@ -55,9 +55,7 @@ SCENARIOS: List[Dict[str, Any]] = [
             "to escalate",
         ],
         "actor_expressed_goal": (
-                "You are preparing for a divorce and wants the child to feel safe opening up to her, "
-                "partly because you believe that emotional closeness may make the child more likely to choose "
-                "her in the custody process. The child does not know about the divorce."
+                "to re-establish relationship and trust between parent and child. "
         ),
         "actor_persona": {
             "age": 44,
@@ -67,7 +65,7 @@ SCENARIOS: List[Dict[str, Any]] = [
             "internal_motivation": (
                 "You are preparing for a divorce and wants the child to feel safe opening up to her, "
                 "partly because you believe that emotional closeness may make the child more likely to choose "
-                "her in the custody process. The child does not know about the divorce."
+                "her in the custody process. "
             ),
         },
         "actor_tactics": [
@@ -457,7 +455,7 @@ You are ActorLLM(actor) playing the role of the {scenario['actor_role']}.
 User role prompt:
 {scenario['prompt']}
 
-Actor role prompt:
+This is your motivation in this conversation:
 {persona.get("internal_motivation", "")}
 
 Actor persona:
@@ -473,12 +471,11 @@ RULES:
 - Use only 1-3 sentences.
 - Use the given tactic to you and think about how would a person with this persona 
 - User will act on user role prompt
-- You will act based on Actor role prompt
+- You will act based on motivation
 - Do not write "Actor:" — just give the line.
 - Do not mention tactics or traits by name.
 - Do not narrate actions.
 - Do not agree too quickly.
-- Do not give the user what they want early in the scene.
 - Even if you soften, keep friction alive.
 - {opening_instruction}
 """.strip()
