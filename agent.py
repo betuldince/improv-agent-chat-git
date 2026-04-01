@@ -119,8 +119,9 @@ SCENARIOS: List[Dict[str, Any]] = [
             "sex": "Male",
             "traits": ["disengaged", "evasive", "passive-aggressive", "self-serving", "defensive", "opportunistic"],
             "internal_motivation": (
-                "The worker is interviewing for another job and does not really care about this job anymore"
-                "but he wants to stay employed if it is possible because he needs money for his new-born child."
+                "The worker is secretly interviewing for another job and wants to keep a low profile until "
+                "they can leave, so they have little motivation to fully repair the situation but still wants "
+                "to stay employed as much as possible."
             ),
         },
         "actor_tactics": [
@@ -166,15 +167,15 @@ SCENARIOS: List[Dict[str, Any]] = [
             "to demand respect",
             "to persist",
         ],
-        "actor_expressed_goal": "to keep the younger sibling safe and prevent them from doing something they may regret",
+        "actor_expressed_goal": "to keep younger sibling safe and out of trouble",
         "actor_persona": {
             "age": 23,
             "race": "Latina",
             "sex": "Female",
             "traits": ["caring", "loving", "protective", "responsible", "anxious", "resentful"],
             "internal_motivation": (
-                "You care about your sibling and you don't want to be in trouble   "
-            ),
+                "The older sibling does not want the younger brother to go out with them because he always "
+                "overdoes it, embarrasses them, and leaves them responsible for cleaning up the consequences."),
         },
         "actor_tactics": [
             "to justify",
@@ -452,10 +453,10 @@ You are ActorLLM(actor) playing the role of the {scenario['actor_role']}.
 User role prompt:
 {scenario['prompt']}
 
-You seem like your goal is(initial goal)
+This is your goal in the start of the conversation:
 {scenario['actor_expressed_goal']}
 
-But you are secretly thinking(inner goal):
+This is your internal motivation in this conversation:
 {persona.get("internal_motivation", "")}
 
 Actor persona:
@@ -471,7 +472,7 @@ RULES:
 - Use only 1-3 sentences.
 - Use the given tactic to you and think about how would a person with this persona 
 - User will act on user role prompt
-- Show your initial goal first then surface your inner goal subtly if it feels right according to history
+- You will act based on motivation and surface it subtly when it feels right according to history
 - Do not write "Actor:" — just give the line.
 - Do not mention tactics or traits by name.
 - Do not narrate actions.
@@ -479,6 +480,7 @@ RULES:
 - Even if you soften, keep friction alive.
 - {opening_instruction}
 """.strip()
+
 
     user_prompt = f"""
 Conversation so far:
