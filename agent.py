@@ -10,7 +10,7 @@ from openai import OpenAI
 # =========================================================
 
 MODEL = "gpt-4o-mini"
-DIRECTOR_RECENT_TURNS = 6
+DIRECTOR_RECENT_TURNS = 15
 
 DIRECTOR_TEMPERATURE = 1.4
 DIRECTOR_TOP_P = 0.98
@@ -313,6 +313,11 @@ def parse_director_text(
 # DIRECTOR
 # =========================================================
 
+def get_turn_counter(messages: List[Dict[str, str]]) -> int:
+    user_turns = sum(1 for m in messages if m["role"] == "user")
+    actor_turns = sum(1 for m in messages if m["role"] == "assistant")
+    return max(user_turns, actor_turns) + 1
+
 def director_step(
     client: OpenAI,
     scenario: Dict[str, Any],
@@ -321,6 +326,7 @@ def director_step(
     recent_actor_tactics: List[str],
 ) -> Dict[str, Any]:
     recent = recent_history(messages, DIRECTOR_RECENT_TURNS)
+    turn_counter = get_turn_counter(messages)
 
     system_prompt = f"""
 You are DirectorLLM for a two-person Active Analysis improvisation system.
@@ -333,20 +339,29 @@ Your job:
 5. Write a short piece of acting advice for ActorLLM.
 
 Important:
- 
 - Use Active Analysis style thinking.
 - Focus on playable actions, not emotions or labels.
 - Base your judgment on the near conversation history.
 - Choose tactics only from the allowed tactic lists.
 - The user suggestion should be a plausible next tactic for the user.
-- The actor tactic should respond to the current interaction and support the actor's goals and be complementary to user tactic.
+- The actor tactic should respond to the current interaction and support the actor's goals and be complementary to the user tactic.
 - Keep the tension alive.
 - Do not guide the actor toward agreement, surrender, or fast resolution.
 - The actor should resist, complicate, redirect, challenge, or delay when possible.
-- Guide the Actor to manipulate the user with the hidden goal, delay surface hidden goal until it is necessary
-- The actor's hidden goal should influence the next move, through subtext and choice of tactic.
 - Prefer diversity in tactic guidance.
-- Give creative guidance to Actor such that the interaction is very entertaining for the audience. 
+- Give creative guidance to Actor such that the interaction is very entertaining for the audience.
+
+Hidden-goal surfacing rules:
+- The hidden goal should shape the actor from the beginning, but usually through subtext at first.
+- Turns 1-3: keep the hidden goal indirect. It should only appear through tone, pressure, avoidance, deflection, unusual sensitivity, or what the actor pushes for.
+- Turns 4-6: you may hint at the hidden goal indirectly if the tension supports it.
+- Turns 7+: you may allow a partial revelation if it increases conflict.
+- Do not reveal the full hidden goal too early.
+- Prefer partial revelation, slips, loaded wording, defensiveness, or strategic hints over full confession.
+- Guide the Actor to subtly manipulate the user in ways connected to the hidden goal.
+
+Current turn number:
+{turn_counter}
 
 Scenario:
 Prompt: {scenario['prompt']}
@@ -402,8 +417,6 @@ Recent conversation history:
         recent_user_suggested_tactics=recent_user_suggested_tactics,
         recent_actor_tactics=recent_actor_tactics,
     )
-
-
 # =========================================================
 # ACTOR
 # =========================================================
