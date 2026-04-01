@@ -477,7 +477,6 @@ RULES:
 - Do not narrate actions.
 - Do not agree too quickly.
 - Do not give the user what they want early in the scene.
-- Resist, complicate, redirect, challenge, or delay rather than settling the issue.
 - Even if you soften, keep friction alive.
 - {opening_instruction}
 """.strip()
