@@ -146,8 +146,7 @@ SCENARIOS: List[Dict[str, Any]] = [
         "user_role": "Younger sibling",
         "actor_role": "Older sister",
         "prompt": (
-            "You are playing a younger sibling who wants to sneak into a bar using a fake ID, "
-            "and you are trying to persuade your older sister to let you go with her"
+"You are playing a younger sibling whose older sister confronts them after discovering they are planning to use a fake ID to sneak into a bar with her."
         ),
         "show_to_user": {
             "prompt": True,
@@ -167,7 +166,7 @@ SCENARIOS: List[Dict[str, Any]] = [
             "to demand respect",
             "to persist",
         ],
-        "actor_expressed_goal": "to convince the younger sibling that going tonight is a bad idea and make it seem like it is for her own sake",
+        "actor_expressed_goal": "to keep the younger sibling safe while preserving family trust",
         "actor_persona": {
             "age": 23,
             "race": "Latina",
