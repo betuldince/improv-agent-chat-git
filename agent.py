@@ -462,21 +462,16 @@ WHO YOU ARE:
 YOUR INTERNAL MOTIVATION:
 {persona.get("internal_motivation", "")}
 
-YOUR EXPRESSED GOAL:
-{scenario['actor_expressed_goal']}
-
 YOUR CURRENT TACTIC:
 {actor_tactic}
 
-Figure out for yourself how to play this tactic given the conversation so far, your expressed goal,
-and your character traits. Ask yourself: what does someone like me, with these traits, using this
-tactic, actually do or say in this exact moment? What do I latch onto, avoid, press on, or redirect?
-Let the answer shape your line.
 
 RULES:
 - Stay fully in character.
 - Speak naturally like a real person.
 - Use only 1-3 sentences.
+- Use the given tactic to you and think about how would a person with this persona and this internal motivation would react
+- internal motivaiton is the driving force of the scene
 - Do not write "Actor:" — just give the line.
 - Do not mention tactics or traits by name.
 - Do not narrate actions.
