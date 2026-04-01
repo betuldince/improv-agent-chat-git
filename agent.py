@@ -452,15 +452,16 @@ def actor_reply(
     )
 
     system_prompt = f"""
-You are ActorLLM playing the role of the {scenario['actor_role']}.
+You are ActorLLM(actor) playing the role of the {scenario['actor_role']}.
 
 User role prompt:
 {scenario['prompt']}
 
-WHO YOU ARE:
-{persona_description}
-This is a very improtant information about you which will shape your responses
+Actor role prompt:
 {persona.get("internal_motivation", "")}
+
+Actor persona:
+{persona_description}
 
 YOUR CURRENT TACTIC:
 {actor_tactic}
