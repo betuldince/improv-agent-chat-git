@@ -12,10 +12,10 @@ from openai import OpenAI
 MODEL = "gpt-4o-mini"
 DIRECTOR_RECENT_TURNS = 15
 
-DIRECTOR_TEMPERATURE = 1.4
-DIRECTOR_TOP_P = 0.98
+DIRECTOR_TEMPERATURE = 0.6
+DIRECTOR_TOP_P = 0.4
 
-ACTOR_TEMPERATURE = 1.25
+ACTOR_TEMPERATURE = 1.3
 ACTOR_TOP_P = 0.95
 
 TURN_NUM = 0
@@ -38,7 +38,7 @@ SCENARIOS: List[Dict[str, Any]] = [
             "user_impelling_action": True,
             "show_tactic": True,
         },
-        "user_impelling_action": "to push back against the parent’s control and defend your independence",
+        "user_impelling_action": "to push back against the parent's control and defend your independence",
         "user_tactics": [
             "to justify",
             "to minimize",
@@ -56,7 +56,9 @@ SCENARIOS: List[Dict[str, Any]] = [
         ],
         "actor_expressed_goal": "to uncover the full truth and regain trust",
         "actor_hidden_goal": (
-            "The parent is preparing for a divorce and wants the child to feel safe opening up to her, partly because she believes that emotional closeness may make the child more likely to choose her in the custody process. The child does not know about the divorce."
+            "The parent is preparing for a divorce and wants the child to feel safe opening up to her, "
+            "partly because she believes that emotional closeness may make the child more likely to choose "
+            "her in the custody process. The child does not know about the divorce."
         ),
         "actor_tactics": [
             "to question",
@@ -104,8 +106,9 @@ SCENARIOS: List[Dict[str, Any]] = [
         ],
         "actor_expressed_goal": "to have flexible working hours and show team's performance have nothing to do with him",
         "actor_hidden_goal": (
-            "The worker is secretly interviewing for another job and wants to keep a low profile until they can leave, so they have little motivation to fully repair the situation but still wants to stay employed as much as possible."
- 
+            "The worker is secretly interviewing for another job and wants to keep a low profile until "
+            "they can leave, so they have little motivation to fully repair the situation but still wants "
+            "to stay employed as much as possible."
         ),
         "actor_tactics": [
             "to trivialize",
@@ -130,7 +133,8 @@ SCENARIOS: List[Dict[str, Any]] = [
         "user_role": "Younger sibling",
         "actor_role": "Older sister",
         "prompt": (
-            "You are playing a younger sibling who wants to sneak into a bar using a fake ID, and you are trying to persuade your older sister to let you go with her"
+            "You are playing a younger sibling who wants to sneak into a bar using a fake ID, "
+            "and you are trying to persuade your older sister to let you go with her"
         ),
         "show_to_user": {
             "prompt": True,
@@ -152,7 +156,8 @@ SCENARIOS: List[Dict[str, Any]] = [
         ],
         "actor_expressed_goal": "to keep younger sibling safe and out of trouble",
         "actor_hidden_goal": (
-            "The older sibling does not want the younger brother to go out with them because he always overdoes it, embarrasses them, and leaves them responsible for cleaning up the consequences."
+            "The older sibling does not want the younger brother to go out with them because he always "
+            "overdoes it, embarrasses them, and leaves them responsible for cleaning up the consequences."
         ),
         "actor_tactics": [
             "to justify",
@@ -274,7 +279,6 @@ def parse_director_text(
     suggested_user = _extract_labeled_value(raw_text, "USER_TACTIC_SUGGESTED") or scenario["user_tactics"][0]
     actor_tactic = _extract_labeled_value(raw_text, "ACTOR_TACTIC") or scenario["actor_tactics"][0]
     evidence = _extract_labeled_value(raw_text, "EVIDENCE") or ""
-    director_note = _extract_labeled_value(raw_text, "DIRECTOR_NOTE_FOR_ACTOR") or raw_text.strip()
 
     if inferred != "none yet" and inferred not in scenario["user_tactics"]:
         inferred = "none yet"
@@ -293,28 +297,18 @@ def parse_director_text(
         avoid_last_n=2,
     )
 
-    if not director_note:
-        director_note = (
-            f"Use {actor_tactic} to pursue your expressed goal openly while subtly protecting your hidden goal. "
-            f"Do not resolve the conflict quickly."
-        )
-
     return {
         "raw_text": raw_text.strip(),
         "user_tactic_inferred": inferred,
         "user_tactic_suggested": suggested_user,
         "actor_tactic": actor_tactic,
         "evidence": evidence,
-        "director_note_for_actor": director_note,
-        "director_message_for_actor": raw_text.strip() if raw_text.strip() else director_note,
     }
 
 
 # =========================================================
 # DIRECTOR
 # =========================================================
-
-
 
 def director_step(
     client: OpenAI,
@@ -330,49 +324,22 @@ def director_step(
     system_prompt = f"""
 You are DirectorLLM for a two-person Active Analysis improvisation system.
 
-Your job:
-1. Read the recent conversation history.
-2. Infer the USER's current tactic from the allowed user tactics.
-3. Choose ONE USER tactic suggestion for the user's next move.
-4. Choose ONE ACTOR tactic for the actor's next move.
-5. Write a short piece of acting advice for ActorLLM.
+Your only job is to read the conversation and choose tactics:
+1. Infer the USER's current tactic from the allowed user tactics.
+2. Choose ONE USER tactic suggestion for the user's next move.
+3. Choose ONE ACTOR tactic for the actor's next move.
 
 RULES
 - Use Active Analysis style thinking.
-- Focus on playable actions, not emotions or labels.
-- Base your judgment on the near conversation history.
 - Choose tactics only from the allowed tactic lists.
-- The user suggestion should be a plausible next tactic for the user.
-- The actor tactic should respond to the current interaction and support the actor's goals and be complementary to the user tactic.
-- Keep the tension alive.
-- Do not guide the actor toward agreement, surrender, or fast resolution.
-- The actor should resist, complicate, redirect, challenge, or delay when possible.
-- Prefer diversity in tactic guidance.
-- Give creative guidance to Actor such that the interaction is very entertaining for the audience.
-
-Stage guidance based on turn number:
-- If TURN_NUM < 5:
-  The actor should mainly follow the expressed goal.
-  The hidden goal may shape tone, pressure, sensitivity, or subtext, but it should not drive the scene yet.
-  Keep the actor's behavior readable through the expressed goal.
-
-- If 5 <= TURN_NUM <= 7:
-  Begin pivoting from the expressed goal toward the hidden goal.
-  Let the hidden goal start to influence what the actor emphasizes, avoids, or strategically reveals.
-  The actor may hint at the hidden goal, partially reveal it, or let it reshape the direction of the conflict.
-  Do not switch too suddenly. Make the pivot gradual and playable.
-
-- If TURN_NUM > 7:
-  The hidden goal should now actively drive the actor's behavior.
-  The actor can play more directly toward the hidden goal.
-  The expressed goal can still remain on the surface, but the hidden goal should now be the main engine underneath the scene.
-  Let this deepen the conflict rather than resolve it.
-Current turn number:
-{TURN_NUM}
-
+- Base your choices on the recent conversation history.
+- The user suggestion should be the most plausible next move for the user.
+- The actor tactic should keep tension alive and resist easy resolution.
+- Prefer diversity — avoid repeating recently used tactics unless the scene demands it.
+- Do NOT write any notes, advice, or explanation for the actor. Tactic selection only.
 
 Scenario:
-User role Prompt: {scenario['prompt']}
+User role prompt: {scenario['prompt']}
 User role: {scenario['user_role']}
 Actor role: {scenario['actor_role']}
 
@@ -384,9 +351,6 @@ Allowed user tactics:
 
 Actor expressed goal:
 {scenario['actor_expressed_goal']}
-
-Actor hidden goal:
-{scenario['actor_hidden_goal'] if scenario['actor_hidden_goal'] else "None"}
 
 Allowed actor tactics:
 {json.dumps(scenario['actor_tactics'], ensure_ascii=False)}
@@ -402,8 +366,7 @@ Return exactly in this plain-text format:
 USER_TACTIC_INFERRED: <one tactic from allowed user tactics or none yet>
 USER_TACTIC_SUGGESTED: <one tactic from allowed user tactics>
 ACTOR_TACTIC: <one tactic from allowed actor tactics>
-EVIDENCE: <brief explanation based on recent lines>
-DIRECTOR_NOTE_FOR_ACTOR: <Based on the Rules and stage guidance, and Scenario components guide the Actor for this line max. 5 sentences>
+EVIDENCE: <one sentence explaining your tactic choices based on the recent lines>
 """.strip()
 
     user_prompt = f"""
@@ -425,23 +388,70 @@ Recent conversation history:
         recent_user_suggested_tactics=recent_user_suggested_tactics,
         recent_actor_tactics=recent_actor_tactics,
     )
+
+
 # =========================================================
 # ACTOR
 # =========================================================
+
+def _build_hidden_goal_instruction(scenario: Dict[str, Any], turn_num: int) -> str:
+    hidden_goal = scenario.get("actor_hidden_goal") or ""
+    if not hidden_goal:
+        return ""
+
+    if turn_num < 5:
+        return f"""
+YOUR HIDDEN GOAL (background only — do NOT act on it yet):
+{hidden_goal}
+
+Right now your expressed goal is fully driving your behavior.
+The hidden goal may subtly color your emotional tone or make you slightly more careful
+than expected, but it must not visibly shape your choices yet.
+""".strip()
+
+    elif 5 <= turn_num <= 7:
+        return f"""
+YOUR HIDDEN GOAL (beginning to quietly shape your choices):
+{hidden_goal}
+
+You are not revealing it, but it is making you:
+- emphasize certain things more than you otherwise would
+- be oddly careful or gentle at unexpected moments
+- avoid directions that would complicate your hidden situation
+- steer the conversation in ways that serve you without explaining why
+
+Do not name or explain the hidden goal. Just let it quietly redirect what you care about.
+""".strip()
+
+    else:
+        return f"""
+YOUR HIDDEN GOAL (now the main engine underneath your behavior):
+{hidden_goal}
+
+Your expressed goal is still on the surface, but almost everything you say is now shaped
+by your hidden situation. Ask yourself: given what I am secretly dealing with, what would
+I ACTUALLY want from this conversation right now? What would I avoid saying? What would
+I be quietly steering toward? Let that drive your line — even if your words stay on topic
+with the expressed goal.
+""".strip()
+
 
 def actor_reply(
     client: OpenAI,
     scenario: Dict[str, Any],
     messages: List[Dict[str, str]],
     actor_tactic: str,
-    director_note_for_actor: str,
+    turn_num: int,
     opening_line: bool = False,
 ) -> str:
     opening_instruction = (
-        "This is the first line of the scene. Begin naturally, as if the conversation is just starting. Do not state the whole conflict immediately."
+        "This is the first line of the scene. Begin naturally, as if the conversation is just starting. "
+        "Do not state the whole conflict immediately."
         if opening_line
         else "Respond directly to the user's latest line."
     )
+
+    hidden_goal_instruction = _build_hidden_goal_instruction(scenario, turn_num)
 
     system_prompt = f"""
 You are ActorLLM playing the role of the {scenario['actor_role']}.
@@ -449,25 +459,24 @@ You are ActorLLM playing the role of the {scenario['actor_role']}.
 User role prompt:
 {scenario['prompt']}
 
-Your expressed goal:
+YOUR EXPRESSED GOAL:
 {scenario['actor_expressed_goal']}
 
-Your hidden goal:
-{scenario['actor_hidden_goal'] if scenario['actor_hidden_goal'] else "None"}
+{hidden_goal_instruction}
 
-Your current tactic:
+YOUR CURRENT TACTIC:
 {actor_tactic}
 
-Director advice:
-{director_note_for_actor}
+Figure out for yourself how to play this tactic given the conversation so far, your expressed goal,
+and whatever your hidden goal is calling for at this stage. Ask yourself: what does someone using
+this tactic actually do or say in this exact moment? What do they latch onto, avoid, press on,
+or redirect? Let the answer shape your line.
 
-Rules:
+RULES:
 - Stay fully in character.
-- Be faithful to Drector guidance to guide your current line
 - Speak naturally like a real person.
 - Use only 1-3 sentences.
-- Do not mention "Actor:" in your response, just give the line
-- Be creative in your response and open up new directions to talk
+- Do not write "Actor:" — just give the line.
 - Do not mention tactics by name.
 - Do not narrate actions.
 - Do not agree too quickly.

@@ -5,6 +5,7 @@ import string
 
 from agent import (
     SCENARIOS,
+    TURN_NUM,
     create_client,
     director_step,
     actor_reply,
@@ -238,7 +239,7 @@ def open_scene_with_actor(client, scenario) -> None:
         scenario=scenario,
         messages=[],
         actor_tactic=director_out["actor_tactic"],
-        director_note_for_actor=director_out["director_message_for_actor"],
+        turn_num=TURN_NUM,
         opening_line=True,
     )
 
@@ -280,7 +281,7 @@ def generate_pending_actor_response(client, scenario) -> None:
         scenario=scenario,
         messages=st.session_state.messages,
         actor_tactic=director_out["actor_tactic"],
-        director_note_for_actor=director_out["director_message_for_actor"],
+        turn_num=TURN_NUM,
         opening_line=False,
     )
 
@@ -386,7 +387,7 @@ if not st.session_state.study_started and not st.session_state.study_finished:
 
     if st.session_state.study_condition == "A":
         st.info(
-            "In this study, you will improvise with an AI agent. On the left side of the screen, you will see your assigned role, your AI partner’s role, and the scenario you will act out. Your impelling action is your goal in the scene, and your suggested tactic is an action word that may help guide your next dialogue line.\n\n"
+            "In this study, you will improvise with an AI agent. On the left side of the screen, you will see your assigned role, your AI partner's role, and the scenario you will act out. Your impelling action is your goal in the scene, and your suggested tactic is an action word that may help guide your next dialogue line.\n\n"
             "To respond, use the microphone bar under 'Your response':\n"
             "1. Click the mic icon to start recording.\n"
             "2. Speak your response out loud.\n"
@@ -396,7 +397,7 @@ if not st.session_state.study_started and not st.session_state.study_finished:
         )
     elif st.session_state.study_condition == "B":
         st.info(
-            "In this study, you will improvise with an AI agent. On the left side of the screen, you will see your assigned role, your AI partner’s role, and the scenario for the scene.\n\n"
+            "In this study, you will improvise with an AI agent. On the left side of the screen, you will see your assigned role, your AI partner's role, and the scenario for the scene.\n\n"
             "To respond, use the microphone bar under 'Your response':\n"
             "1. Click the mic icon to start recording.\n"
             "2. Speak your response out loud.\n"
@@ -406,7 +407,7 @@ if not st.session_state.study_started and not st.session_state.study_finished:
         )
     else:
         st.info(
-            "In this study, you will improvise with an AI agent. On the left side of the screen, you will see your assigned role, your AI partner’s role, and the scenario you will act out. Your impelling action is your goal in the scene, and your suggested tactic is an action word that may help guide your next dialogue line.\n\n"
+            "In this study, you will improvise with an AI agent. On the left side of the screen, you will see your assigned role, your AI partner's role, and the scenario you will act out. Your impelling action is your goal in the scene, and your suggested tactic is an action word that may help guide your next dialogue line.\n\n"
             "To respond, use the microphone bar under 'Your response':\n"
             "1. Click the mic icon to start recording.\n"
             "2. Speak your response out loud.\n"
