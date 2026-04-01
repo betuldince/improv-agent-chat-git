@@ -18,6 +18,7 @@ DIRECTOR_TOP_P = 0.98
 ACTOR_TEMPERATURE = 1.25
 ACTOR_TOP_P = 0.95
 
+TURN_NUM = 0
 
 # =========================================================
 # SCENARIOS
@@ -313,10 +314,7 @@ def parse_director_text(
 # DIRECTOR
 # =========================================================
 
-def get_turn_counter(messages: List[Dict[str, str]]) -> int:
-    user_turns = sum(1 for m in messages if m["role"] == "user")
-    actor_turns = sum(1 for m in messages if m["role"] == "assistant")
-    return max(user_turns, actor_turns) + 1
+
 
 def director_step(
     client: OpenAI,
@@ -326,7 +324,8 @@ def director_step(
     recent_actor_tactics: List[str],
 ) -> Dict[str, Any]:
     recent = recent_history(messages, DIRECTOR_RECENT_TURNS)
-    turn_counter = get_turn_counter(messages)
+    global TURN_NUM
+    TURN_NUM += 1
 
     system_prompt = f"""
 You are DirectorLLM for a two-person Active Analysis improvisation system.
@@ -353,15 +352,15 @@ Important:
 
 Hidden-goal surfacing rules:
 - The hidden goal should shape the actor from the beginning, but usually through subtext at first.
-- Turns 1-3: keep the hidden goal indirect. It should only appear through tone, pressure, avoidance, deflection, unusual sensitivity, or what the actor pushes for.
-- Turns 4-6: you may hint at the hidden goal indirectly if the tension supports it.
-- Turns 7+: you may allow a partial revelation if it increases conflict.
-- Do not reveal the full hidden goal too early.
-- Prefer partial revelation, slips, loaded wording, defensiveness, or strategic hints over full confession.
+- Turns 1-2: keep the hidden goal indirect. It should only appear through tone, pressure, avoidance, deflection, unusual sensitivity, or what the actor pushes for.
+- Turns 3-4: you may hint at the hidden goal indirectly if the tension supports it.
+- Turns 4-5: you may allow a partial revelation  
+- Turns 5+: reveal the hidden goal naturally.
 - Guide the Actor to subtly manipulate the user in ways connected to the hidden goal.
 
 Current turn number:
-{turn_counter}
+{TURN_NUM}
+
 
 Scenario:
 Prompt: {scenario['prompt']}
@@ -458,7 +457,7 @@ Rules:
 - Speak naturally like a real person.
 - Use only 1-3 sentences.
 - Do not mention "Actor:" in your response, just give the line
-- Be creative in your response and open up new directions
+- Be creative in your response and open up new directions to talk
 - Do not mention tactics by name.
 - Do not narrate actions.
 - Bring up the main topic naturally.
