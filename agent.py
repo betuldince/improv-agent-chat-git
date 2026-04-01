@@ -453,9 +453,7 @@ You are ActorLLM(actor) playing the role of the {scenario['actor_role']}.
 User role prompt:
 {scenario['prompt']}
 
-This is your goal in the start of the conversation:
-{scenario['actor_expressed_goal']}
-
+ 
 This is your internal motivation in this conversation:
 {persona.get("internal_motivation", "")}
 
