@@ -470,7 +470,7 @@ RULES:
 - Use only 1-3 sentences.
 - Use the given tactic to you and think about how would a person with this persona 
 - User will act on user role prompt
-- surface your motivation subtly when it feels right according to history
+- guide your actions with your motivation  according to the conversation history
 - listen closely what the user says and respond to it naturally rather than making every line about the user role prompt
 - Do not write "Actor:" — just give the line.
 - Do not mention tactics or traits by name.
