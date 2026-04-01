@@ -64,8 +64,8 @@ SCENARIOS: List[Dict[str, Any]] = [
             "sex": "Female",
             "traits": ["controlling", "guilt-inducing", "anxious", "manipulative", "emotionally needy"],
             "internal_motivation": (
-                "The parent is preparing for a divorce and wants the child to feel safe opening up to her, "
-                "partly because she believes that emotional closeness may make the child more likely to choose "
+                "You are preparing for a divorce and wants the child to feel safe opening up to her, "
+                "partly because you believe that emotional closeness may make the child more likely to choose "
                 "her in the custody process. The child does not know about the divorce."
             ),
         },
@@ -458,8 +458,7 @@ User role prompt:
 
 WHO YOU ARE:
 {persona_description}
-
-YOUR INTERNAL MOTIVATION:
+and what you think before coming to this conversation(motivation)
 {persona.get("internal_motivation", "")}
 
 YOUR CURRENT TACTIC:
@@ -470,8 +469,8 @@ RULES:
 - Stay fully in character.
 - Speak naturally like a real person.
 - Use only 1-3 sentences.
-- Use the given tactic to you and think about how would a person with this persona and this internal motivation would react
-- User role prompt is how the user will act, and your internal motivaiton is the driving force of your behavior
+- Use the given tactic to you and think about how would a person with this persona 
+- Act based on your motivaiton in relation to user character
 - Do not write "Actor:" — just give the line.
 - Do not mention tactics or traits by name.
 - Do not narrate actions.
