@@ -171,7 +171,7 @@ SCENARIOS: List[Dict[str, Any]] = [
             "age": 23,
             "race": "Latina",
             "sex": "Female",
-            "traits": ["patronizing", "image-conscious", "avoidant", "overprotective", "resentful", "conflict-averse"],
+            "traits": ["caring", "protective", "responsible", "anxious", "resentful"],
             "internal_motivation": (
                 "You care about your sibling and you don't want to be in trouble but secretly you also"
                 "think he always overdoes it, embarrasses you, and leaves you responsible for cleaning up the consequences."
