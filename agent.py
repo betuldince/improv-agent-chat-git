@@ -26,7 +26,7 @@ TURN_NUM = 0
 
 SCENARIOS: List[Dict[str, Any]] = [
     {
-        "round_number": 1,
+        "round_number": 3,
         "user_role": "Teenager",
         "actor_role": "Parent",
         "prompt": (
@@ -35,8 +35,8 @@ SCENARIOS: List[Dict[str, Any]] = [
         ),
         "show_to_user": {
             "prompt": True,
-            "user_impelling_action": True,
-            "show_tactic": True,
+            "user_impelling_action": False,
+            "show_tactic": False,
         },
         "user_impelling_action": "to push back against the parent's control and defend your independence",
         "user_tactics": [
@@ -143,7 +143,7 @@ SCENARIOS: List[Dict[str, Any]] = [
         ],
     },
     {
-        "round_number": 3,
+        "round_number": 1,
         "user_role": "Younger sibling",
         "actor_role": "Older sister",
         "prompt": (
@@ -151,8 +151,8 @@ SCENARIOS: List[Dict[str, Any]] = [
         ),
         "show_to_user": {
             "prompt": True,
-            "user_impelling_action": False,
-            "show_tactic": False,
+            "user_impelling_action": True,
+            "show_tactic": True,
         },
         "user_impelling_action": "to get the older sibling to let them come and to be treated like an adult",
         "user_tactics": [
