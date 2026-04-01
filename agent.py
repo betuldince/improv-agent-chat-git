@@ -54,12 +54,21 @@ SCENARIOS: List[Dict[str, Any]] = [
             "to appeal",
             "to escalate",
         ],
-        "actor_expressed_goal": "to re-establish relationship and trust between parent and child. That is being hindered by parent not knowing what the child did night before",
-        "actor_hidden_goal": (
-            "The parent is preparing for a divorce and wants the child to feel safe opening up to her, "
-            "partly because she believes that emotional closeness may make the child more likely to choose "
-            "her in the custody process. The child does not know about the divorce."
+        "actor_expressed_goal": (
+            "to re-establish relationship and trust between parent and child. "
+            "That is being hindered by parent not knowing what the child did night before"
         ),
+        "actor_persona": {
+            "age": 44,
+            "race": "White",
+            "sex": "Female",
+            "traits": ["controlling", "guilt-inducing", "anxious", "manipulative", "emotionally needy"],
+            "internal_motivation": (
+                "The parent is preparing for a divorce and wants the child to feel safe opening up to her, "
+                "partly because she believes that emotional closeness may make the child more likely to choose "
+                "her in the custody process. The child does not know about the divorce."
+            ),
+        },
         "actor_tactics": [
             "to question",
             "to press for details",
@@ -105,11 +114,17 @@ SCENARIOS: List[Dict[str, Any]] = [
             "to test honesty",
         ],
         "actor_expressed_goal": "to have flexible working hours and show team's performance have nothing to do with him",
-        "actor_hidden_goal": (
-            "The worker is secretly interviewing for another job and wants to keep a low profile until "
-            "they can leave, so they have little motivation to fully repair the situation but still wants "
-            "to stay employed as much as possible."
-        ),
+        "actor_persona": {
+            "age": 31,
+            "race": "Black",
+            "sex": "Male",
+            "traits": ["disengaged", "evasive", "passive-aggressive", "self-serving", "defensive", "opportunistic"],
+            "internal_motivation": (
+                "The worker is secretly interviewing for another job and wants to keep a low profile until "
+                "they can leave, so they have little motivation to fully repair the situation but still wants "
+                "to stay employed as much as possible."
+            ),
+        },
         "actor_tactics": [
             "to trivialize",
             "to redirect toward others",
@@ -155,10 +170,16 @@ SCENARIOS: List[Dict[str, Any]] = [
             "to persist",
         ],
         "actor_expressed_goal": "to keep younger sibling safe and out of trouble",
-        "actor_hidden_goal": (
-            "The older sibling does not want the younger brother to go out with them because he always "
-            "overdoes it, embarrasses them, and leaves them responsible for cleaning up the consequences."
-        ),
+        "actor_persona": {
+            "age": 23,
+            "race": "Latina",
+            "sex": "Female",
+            "traits": ["patronizing", "image-conscious", "avoidant", "overprotective", "resentful", "conflict-averse"],
+            "internal_motivation": (
+                "The older sibling does not want the younger brother to go out with them because he always "
+                "overdoes it, embarrasses them, and leaves them responsible for cleaning up the consequences."
+            ),
+        },
         "actor_tactics": [
             "to justify",
             "to patronize",
@@ -402,54 +423,11 @@ Recent conversation history:
 # ACTOR
 # =========================================================
 
-def _build_hidden_goal_instruction(scenario: Dict[str, Any], turn_num: int) -> str:
-    hidden_goal = scenario.get("actor_hidden_goal") or ""
-    if not hidden_goal:
-        return ""
-
-    if turn_num < 3:
-        return f"""
-YOUR HIDDEN GOAL (background only — do NOT act on it yet):
-{hidden_goal}
-
-Right now your expressed goal is fully driving your behavior.
-The hidden goal may subtly color your emotional tone or make you slightly more careful
-than expected, but it must not visibly shape your choices yet.
-""".strip()
-
-    elif 3 <= turn_num <= 5:
-        return f"""
-YOUR HIDDEN GOAL (beginning to quietly shape your choices):
-{hidden_goal}
-
-You are not revealing it, but it is making you:
-- emphasize certain things more than you otherwise would
-- be oddly careful or gentle at unexpected moments
-- avoid directions that would complicate your hidden situation
-- steer the conversation in ways that serve you without explaining why
-
-Do not name or explain the hidden goal. Just let it quietly redirect what you care about.
-""".strip()
-
-    else:
-        return f"""
-YOUR HIDDEN GOAL (now the main engine underneath your behavior):
-{hidden_goal}
-
-Your expressed goal is still on the surface, but almost everything you say is now shaped
-by your hidden situation. Ask yourself: given what I am secretly dealing with, what would
-I ACTUALLY want from this conversation right now? What would I avoid saying? What would
-I be quietly steering toward? Let that drive your line — even if your words stay on topic
-with the expressed goal.
-""".strip()
-
-
 def actor_reply(
     client: OpenAI,
     scenario: Dict[str, Any],
     messages: List[Dict[str, str]],
     actor_tactic: str,
-    turn_num: int,
     opening_line: bool = False,
 ) -> str:
     opening_instruction = (
@@ -459,7 +437,18 @@ def actor_reply(
         else "Respond directly to the user's latest line."
     )
 
-    hidden_goal_instruction = _build_hidden_goal_instruction(scenario, turn_num)
+    persona = scenario.get("actor_persona", {})
+    age = persona.get("age", "")
+    race = persona.get("race", "")
+    sex = persona.get("sex", "")
+    traits = persona.get("traits", [])
+
+    persona_description = (
+        f"You are a {age}-year-old {race} {sex}. "
+        f"Your dominant character traits are: {', '.join(traits)}. "
+        f"These traits shape how you speak, what you notice, and how you react under pressure. "
+        f"Let them color your word choice, your tone, and the texture of your responses naturally."
+    )
 
     system_prompt = f"""
 You are ActorLLM playing the role of the {scenario['actor_role']}.
@@ -467,24 +456,29 @@ You are ActorLLM playing the role of the {scenario['actor_role']}.
 User role prompt:
 {scenario['prompt']}
 
+WHO YOU ARE:
+{persona_description}
+
+YOUR INTERNAL MOTIVATION:
+{persona.get("internal_motivation", "")}
+
 YOUR EXPRESSED GOAL:
 {scenario['actor_expressed_goal']}
-
-Your HIDDEN GOAL:
-{hidden_goal_instruction}
 
 YOUR CURRENT TACTIC:
 {actor_tactic}
 
- 
+Figure out for yourself how to play this tactic given the conversation so far, your expressed goal,
+and your character traits. Ask yourself: what does someone like me, with these traits, using this
+tactic, actually do or say in this exact moment? What do I latch onto, avoid, press on, or redirect?
+Let the answer shape your line.
 
 RULES:
 - Stay fully in character.
 - Speak naturally like a real person.
-- Your hidden goal shape your interaction.
 - Use only 1-3 sentences.
 - Do not write "Actor:" — just give the line.
-- Do not mention tactics by name.
+- Do not mention tactics or traits by name.
 - Do not narrate actions.
 - Do not agree too quickly.
 - Do not give the user what they want early in the scene.
