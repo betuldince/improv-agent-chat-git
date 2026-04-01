@@ -463,7 +463,7 @@ Actor role prompt:
 Actor persona:
 {persona_description}
 
-YOUR CURRENT TACTIC:
+Actor CURRENT TACTIC:
 {actor_tactic}
 
 
@@ -472,7 +472,8 @@ RULES:
 - Speak naturally like a real person.
 - Use only 1-3 sentences.
 - Use the given tactic to you and think about how would a person with this persona 
-- Act based on your motivaiton in relation to user character
+- User will act on user role prompt
+- You will act based on Actor role prompt
 - Do not write "Actor:" — just give the line.
 - Do not mention tactics or traits by name.
 - Do not narrate actions.
