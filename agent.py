@@ -471,7 +471,7 @@ RULES:
 - Speak naturally like a real person.
 - Use only 1-3 sentences.
 - Use the given tactic to you and think about how would a person with this persona and this internal motivation would react
-- internal motivaiton is the driving force of the scene
+- User role prompt is how the user will act, and your internal motivaiton is the driving force of your behavior
 - Do not write "Actor:" — just give the line.
 - Do not mention tactics or traits by name.
 - Do not narrate actions.
