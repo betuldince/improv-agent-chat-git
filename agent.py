@@ -173,8 +173,8 @@ SCENARIOS: List[Dict[str, Any]] = [
             "sex": "Female",
             "traits": ["patronizing", "image-conscious", "avoidant", "overprotective", "resentful", "conflict-averse"],
             "internal_motivation": (
-                "The older sibling does not want the younger brother to go out with them because he always "
-                "overdoes it, embarrasses them, and leaves them responsible for cleaning up the consequences."
+                "You don't want your sibling to go out with you on the surface you believe it is not safe or responsible but deep inside you "
+                "think he always overdoes it, embarrasses you, and leaves you responsible for cleaning up the consequences."
             ),
         },
         "actor_tactics": [
