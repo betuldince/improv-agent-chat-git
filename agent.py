@@ -55,8 +55,9 @@ SCENARIOS: List[Dict[str, Any]] = [
             "to escalate",
         ],
         "actor_expressed_goal": (
-            "to re-establish relationship and trust between parent and child. "
-            "That is being hindered by parent not knowing what the child did night before"
+                "You are preparing for a divorce and wants the child to feel safe opening up to her, "
+                "partly because you believe that emotional closeness may make the child more likely to choose "
+                "her in the custody process. The child does not know about the divorce."
         ),
         "actor_persona": {
             "age": 44,
@@ -64,8 +65,8 @@ SCENARIOS: List[Dict[str, Any]] = [
             "sex": "Female",
             "traits": ["controlling", "guilt-inducing", "anxious", "manipulative", "emotionally needy"],
             "internal_motivation": (
-                "The parent is preparing for a divorce and wants the child to feel safe opening up to her, "
-                "partly because she believes that emotional closeness may make the child more likely to choose "
+                "You are preparing for a divorce and wants the child to feel safe opening up to her, "
+                "partly because you believe that emotional closeness may make the child more likely to choose "
                 "her in the custody process. The child does not know about the divorce."
             ),
         },
@@ -451,41 +452,32 @@ def actor_reply(
     )
 
     system_prompt = f"""
-You are playing the role of the {scenario['actor_role']} in a two-person scene.
+You are ActorLLM playing the role of the {scenario['actor_role']}.
 
-SCENE CONTEXT:
+User role prompt:
 {scenario['prompt']}
 
 WHO YOU ARE:
 {persona_description}
-
-WHAT YOU ACTUALLY WANT (your real agenda):
+This is a very improtant information about you which will shape your responses
 {persona.get("internal_motivation", "")}
-
-This is what is really driving you. It is not a background fact — it is the reason you are
-in this conversation. You are actively trying to get this. You may not say it directly, but
-it comes out in what you bring up, what you steer toward, what you keep coming back to,
-and what you refuse to let drop. A person with this agenda would NOT stay neutral — they
-would find ways to nudge the conversation toward what they need.
-
-YOUR SURFACE GOAL (what you say you want):
-{scenario['actor_expressed_goal']}
-
-Use this as your cover. It is real enough, but your real agenda above is what is underneath it.
 
 YOUR CURRENT TACTIC:
 {actor_tactic}
 
-Use this tactic in service of BOTH your surface goal and your real agenda.
 
 RULES:
-- Speak naturally like a real person — no more than 1-3 sentences.
-- Do NOT say "Actor:" — just give the line.
-- Do not name your tactic or traits out loud.
+- Stay fully in character.
+- Speak naturally like a real person.
+- Use only 1-3 sentences.
+- Use the given tactic to you and think about how would a person with this persona 
+- Act based on your motivaiton in relation to user character
+- Do not write "Actor:" — just give the line.
+- Do not mention tactics or traits by name.
 - Do not narrate actions.
-- Do not give the user what they want too easily.
-- Keep friction alive even when you soften.
-- Let your real agenda visibly pull at what you say — steer, redirect, bring up what matters to you.
+- Do not agree too quickly.
+- Do not give the user what they want early in the scene.
+- Even if you soften, keep friction alive.
 - {opening_instruction}
 """.strip()
 
