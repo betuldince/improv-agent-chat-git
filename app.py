@@ -299,8 +299,8 @@ def render_conversation(scenario) -> None:
 def render_sidebar(scenario, client) -> None:
     with st.sidebar:
         st.subheader(f"Round {scenario['round_number']} of {len(SCENARIOS)}")
-        st.write(f"User role: {scenario['user_role']}")
-        st.write(f"Actor role: {scenario['actor_role']}")
+        st.write(f"Your role: {scenario['user_role']}")
+        st.write(f"Improv Agent role: {scenario['actor_role']}")
 
         st.markdown("---")
         st.write("Scenario")
@@ -382,14 +382,34 @@ if not st.session_state.study_started and not st.session_state.study_finished:
 
     if st.session_state.study_condition == "A":
         st.info(
-            "In this study, you will improvise with an AI agent. On the left side of the screen, you will see your assigned role, your AI partner’s role, and the scenario you will act out. Your impelling action is your goal in the scene, and your suggested tactic is an action word that may help guide your next dialogue line. You can press the record button to record your response. Your speech will be transcribed and sent to your AI improv partner. After some time, the study will move to the next round, where you will receive a different scenario, role, and goal. After 3 rounds, the improvisation part will be over, and you will be asked to return to the Qualtrics tab and **enter the generated ID**."
+            "In this study, you will improvise with an AI agent. On the left side of the screen, you will see your assigned role, your AI partner’s role, and the scenario you will act out. Your impelling action is your goal in the scene, and your suggested tactic is an action word that may help guide your next dialogue line.\n\n"
+            "To respond, use the microphone bar under 'Your response':\n"
+            "1. Click the mic icon to start recording.\n"
+            "2. Speak your response out loud.\n"
+            "3. Click the mic icon again to stop recording.\n"
+            "4. Wait a moment while your speech is transcribed and sent to your AI improv partner.\n\n"
+            "After some time, the study will move to the next round, where you will receive a different scenario, role, and goal. After 3 rounds, the improvisation part will be over, and you will be asked to return to the Qualtrics tab and enter the generated ID."
         )
     elif st.session_state.study_condition == "B":
         st.info(
-            "In this study, you will improvise with an AI agent. On the left side of the screen, you will see your assigned role, your AI partner’s role, and the scenario for the scene. You can press the record button to record your line. Your speech will be transcribed and sent to your AI improv partner. After some time, you will move to the next round, where you will receive a different scenario, role, and goal. After 3 rounds, the improvisation part will be over, and you will be asked to return to the Qualtrics tab and **enter the generated ID**."
+            "In this study, you will improvise with an AI agent. On the left side of the screen, you will see your assigned role, your AI partner’s role, and the scenario for the scene.\n\n"
+            "To respond, use the microphone bar under 'Your response':\n"
+            "1. Click the mic icon to start recording.\n"
+            "2. Speak your response out loud.\n"
+            "3. Click the mic icon again to stop recording.\n"
+            "4. Wait a moment while your speech is transcribed and sent to your AI improv partner.\n\n"
+            "After some time, you will move to the next round, where you will receive a different scenario, role, and goal. After 3 rounds, the improvisation part will be over, and you will be asked to return to the Qualtrics tab and enter the generated ID."
         )
     else:
-        st.warning("Condition not recognized. Use ?condition=A or ?condition=B in the URL.")
+        st.info(
+            "In this study, you will improvise with an AI agent. On the left side of the screen, you will see your assigned role, your AI partner’s role, and the scenario you will act out. Your impelling action is your goal in the scene, and your suggested tactic is an action word that may help guide your next dialogue line.\n\n"
+            "To respond, use the microphone bar under 'Your response':\n"
+            "1. Click the mic icon to start recording.\n"
+            "2. Speak your response out loud.\n"
+            "3. Click the mic icon again to stop recording.\n"
+            "4. Wait a moment while your speech is transcribed and sent to your AI improv partner.\n\n"
+            "After some time, the study will move to the next round, where you will receive a different scenario, role, and goal. After 3 rounds, the improvisation part will be over, and you will be asked to return to the Qualtrics tab and enter the generated ID."
+        )
 
     if st.button("Start study"):
         try:

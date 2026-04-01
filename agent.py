@@ -32,7 +32,7 @@ SCENARIOS: List[Dict[str, Any]] = [
             "user_impelling_action": True,
             "show_tactic": True,
         },
-        "user_impelling_action": "to push back against the parent’s control and defend their independence",
+        "user_impelling_action": "to push back against the parent’s control and defend your independence",
         "user_tactics": [
             "to justify",
             "to minimize",
@@ -373,7 +373,7 @@ Recent conversation history:
         client=client,
         system_prompt=system_prompt,
         user_prompt=user_prompt,
-        temperature=0.3,
+        temperature=0.9,
     )
 
     if out.get("user_tactic_inferred") != "none yet" and out.get("user_tactic_inferred") not in scenario["user_tactics"]:
@@ -472,7 +472,7 @@ Now produce the next line for the {scenario['actor_role']}.
         client=client,
         system_prompt=system_prompt,
         user_prompt=user_prompt,
-        temperature=0.9,
+        temperature=1.3,
     )
 
     if not text:
