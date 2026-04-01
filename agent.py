@@ -337,7 +337,7 @@ Your job:
 4. Choose ONE ACTOR tactic for the actor's next move.
 5. Write a short piece of acting advice for ActorLLM.
 
-Important:
+RULES
 - Use Active Analysis style thinking.
 - Focus on playable actions, not emotions or labels.
 - Base your judgment on the near conversation history.
@@ -350,20 +350,29 @@ Important:
 - Prefer diversity in tactic guidance.
 - Give creative guidance to Actor such that the interaction is very entertaining for the audience.
 
-Hidden-goal surfacing rules:
-- The hidden goal should shape the actor from the beginning, but usually through subtext at first.
-- Turns 1-2: keep the hidden goal indirect. It should only appear through tone, pressure, avoidance, deflection, unusual sensitivity, or what the actor pushes for.
-- Turns 3-4: you may hint at the hidden goal indirectly if the tension supports it.
-- Turns 4-5: you may allow a partial revelation  
-- Turns 5+: reveal the hidden goal naturally.
-- Guide the Actor to subtly manipulate the user in ways connected to the hidden goal.
+Stage guidance based on turn number:
+- If TURN_NUM < 5:
+  The actor should mainly follow the expressed goal.
+  The hidden goal may shape tone, pressure, sensitivity, or subtext, but it should not drive the scene yet.
+  Keep the actor's behavior readable through the expressed goal.
 
+- If 5 <= TURN_NUM <= 7:
+  Begin pivoting from the expressed goal toward the hidden goal.
+  Let the hidden goal start to influence what the actor emphasizes, avoids, or strategically reveals.
+  The actor may hint at the hidden goal, partially reveal it, or let it reshape the direction of the conflict.
+  Do not switch too suddenly. Make the pivot gradual and playable.
+
+- If TURN_NUM > 7:
+  The hidden goal should now actively drive the actor's behavior.
+  The actor can play more directly toward the hidden goal.
+  The expressed goal can still remain on the surface, but the hidden goal should now be the main engine underneath the scene.
+  Let this deepen the conflict rather than resolve it.
 Current turn number:
 {TURN_NUM}
 
 
 Scenario:
-Prompt: {scenario['prompt']}
+User role Prompt: {scenario['prompt']}
 User role: {scenario['user_role']}
 Actor role: {scenario['actor_role']}
 
@@ -394,7 +403,7 @@ USER_TACTIC_INFERRED: <one tactic from allowed user tactics or none yet>
 USER_TACTIC_SUGGESTED: <one tactic from allowed user tactics>
 ACTOR_TACTIC: <one tactic from allowed actor tactics>
 EVIDENCE: <brief explanation based on recent lines>
-DIRECTOR_NOTE_FOR_ACTOR: <1 short sentence of acting advice for the actor, preserving tension and using subtext>
+DIRECTOR_NOTE_FOR_ACTOR: <Based on the Rules and stage guidance, and Scenario components guide the Actor for this line max. 5 sentences>
 """.strip()
 
     user_prompt = f"""
@@ -437,7 +446,7 @@ def actor_reply(
     system_prompt = f"""
 You are ActorLLM playing the role of the {scenario['actor_role']}.
 
-Scene prompt:
+User role prompt:
 {scenario['prompt']}
 
 Your expressed goal:
@@ -454,15 +463,13 @@ Director advice:
 
 Rules:
 - Stay fully in character.
+- Be faithful to Drector guidance to guide your current line
 - Speak naturally like a real person.
 - Use only 1-3 sentences.
 - Do not mention "Actor:" in your response, just give the line
 - Be creative in your response and open up new directions to talk
 - Do not mention tactics by name.
 - Do not narrate actions.
-- Bring up the main topic naturally.
-- On the surface, pursue the expressed goal.
-- Let the hidden goal influence what you push, what you avoid admitting, and the pressure you apply.
 - Do not agree too quickly.
 - Do not give the user what they want early in the scene.
 - Resist, complicate, redirect, challenge, or delay rather than settling the issue.
