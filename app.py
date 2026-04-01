@@ -7,6 +7,7 @@ from agent import (
     SCENARIOS,
     create_client,
     director_step,
+    actor_reply,
 )
 from database import save_round_transcripts
 
@@ -15,7 +16,7 @@ from database import save_round_transcripts
 # CONFIG
 # =========================================================
 
-ROUND_TIME_LIMIT = 7 * 60  # 7 minutes
+ROUND_TIME_LIMIT = 7 * 60  # 7 minutes in seconds
 
 
 # =========================================================
@@ -180,7 +181,7 @@ def check_round_timeout(client) -> None:
             st.rerun()
 
         next_scenario = get_current_scenario()
-        with st.spinner("Starting the next scene..."):
+        with st.spinner("Director is starting the next scene..."):
             open_scene_with_actor(client, next_scenario)
         st.rerun()
 
@@ -214,7 +215,6 @@ def open_scene_with_actor(client, scenario) -> None:
         messages=[],
         recent_user_suggested_tactics=st.session_state.recent_user_suggested_tactics,
         recent_actor_tactics=st.session_state.recent_actor_tactics,
-        opening_line=True,
     )
 
     st.session_state.last_director_output = director_out
@@ -233,7 +233,16 @@ def open_scene_with_actor(client, scenario) -> None:
         director_out["actor_tactic"]
     )
 
-    st.session_state.messages.append({"role": "assistant", "content": director_out["line"]})
+    first_line = actor_reply(
+        client=client,
+        scenario=scenario,
+        messages=[],
+        actor_tactic=director_out["actor_tactic"],
+        director_note_for_actor=director_out["director_message_for_actor"],
+        opening_line=True,
+    )
+
+    st.session_state.messages.append({"role": "assistant", "content": first_line})
     st.session_state.opening_done = True
     st.session_state.round_start_time = time.time()
 
@@ -248,7 +257,6 @@ def generate_pending_actor_response(client, scenario) -> None:
         messages=st.session_state.messages,
         recent_user_suggested_tactics=st.session_state.recent_user_suggested_tactics,
         recent_actor_tactics=st.session_state.recent_actor_tactics,
-        opening_line=False,
     )
 
     st.session_state.last_director_output = director_out
@@ -267,7 +275,16 @@ def generate_pending_actor_response(client, scenario) -> None:
         director_out["actor_tactic"]
     )
 
-    st.session_state.messages.append({"role": "assistant", "content": director_out["line"]})
+    actor_text = actor_reply(
+        client=client,
+        scenario=scenario,
+        messages=st.session_state.messages,
+        actor_tactic=director_out["actor_tactic"],
+        director_note_for_actor=director_out["director_message_for_actor"],
+        opening_line=False,
+    )
+
+    st.session_state.messages.append({"role": "assistant", "content": actor_text})
     st.session_state.awaiting_actor_response = False
     st.session_state.pending_user_text = None
 
@@ -286,8 +303,8 @@ def render_conversation(scenario) -> None:
 def render_sidebar(scenario, client) -> None:
     with st.sidebar:
         st.subheader(f"Round {scenario['round_number']} of {len(SCENARIOS)}")
-        st.write(f"User role: {scenario['user_role']}")
-        st.write(f"Actor role: {scenario['actor_role']}")
+        st.write(f"Your role: {scenario['user_role']}")
+        st.write(f"Improv Agent role: {scenario['actor_role']}")
 
         st.markdown("---")
         st.write("Scenario")
@@ -312,7 +329,7 @@ def render_sidebar(scenario, client) -> None:
                     st.rerun()
 
                 next_scenario = get_current_scenario()
-                with st.spinner("Starting the next scene..."):
+                with st.spinner("Director is starting the next scene..."):
                     open_scene_with_actor(client, next_scenario)
                 st.rerun()
 
@@ -389,20 +406,20 @@ if not st.session_state.study_started and not st.session_state.study_finished:
         )
     else:
         st.info(
-            "In this study, you will improvise with an AI agent. On the left side of the screen, you will see your assigned role, your AI partner’s role, and the scenario.\n\n"
+            "In this study, you will improvise with an AI agent. On the left side of the screen, you will see your assigned role, your AI partner’s role, and the scenario you will act out. Your impelling action is your goal in the scene, and your suggested tactic is an action word that may help guide your next dialogue line.\n\n"
             "To respond, use the microphone bar under 'Your response':\n"
             "1. Click the mic icon to start recording.\n"
             "2. Speak your response out loud.\n"
             "3. Click the mic icon again to stop recording.\n"
             "4. Wait a moment while your speech is transcribed and sent to your AI improv partner.\n\n"
-            "After 3 rounds, you will be asked to return to the Qualtrics tab and enter the generated ID."
+            "After some time, the study will move to the next round, where you will receive a different scenario, role, and goal. After 3 rounds, the improvisation part will be over, and you will be asked to return to the Qualtrics tab and enter the generated ID."
         )
 
     if st.button("Start study"):
         try:
             start_study()
             scenario = get_current_scenario()
-            with st.spinner("Starting the scene..."):
+            with st.spinner("Director is starting the scene..."):
                 open_scene_with_actor(client, scenario)
             st.rerun()
         except Exception as e:

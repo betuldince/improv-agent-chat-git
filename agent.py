@@ -1,4 +1,5 @@
 import json
+import re
 from typing import Any, Dict, List
 
 from openai import OpenAI
@@ -10,8 +11,12 @@ from openai import OpenAI
 
 MODEL = "gpt-4o-mini"
 DIRECTOR_RECENT_TURNS = 6
-DIRECTOR_TEMPERATURE = 1.5
+
+DIRECTOR_TEMPERATURE = 1.4
 DIRECTOR_TOP_P = 0.98
+
+ACTOR_TEMPERATURE = 1.25
+ACTOR_TOP_P = 0.95
 
 
 # =========================================================
@@ -212,7 +217,10 @@ def format_history(messages: List[Dict[str, str]]) -> str:
     return "\n".join(lines)
 
 
-def recent_history(messages: List[Dict[str, str]], n_turns: int = DIRECTOR_RECENT_TURNS) -> List[Dict[str, str]]:
+def recent_history(
+    messages: List[Dict[str, str]],
+    n_turns: int = DIRECTOR_RECENT_TURNS,
+) -> List[Dict[str, str]]:
     if not messages:
         return []
     return messages[-n_turns:]
@@ -221,21 +229,85 @@ def recent_history(messages: List[Dict[str, str]], n_turns: int = DIRECTOR_RECEN
 def format_recent_tactics(tactics: List[str], label: str) -> str:
     if not tactics:
         return f"No recent {label} tactics yet."
-    return ", ".join(tactics)
+    return ", ".join(tactics[-3:])
 
 
 def choose_diverse_tactic(
+    suggested: str,
     allowed: List[str],
     recent_used: List[str],
     avoid_last_n: int = 2,
 ) -> str:
+    if not allowed:
+        return suggested
+
+    if suggested not in allowed:
+        suggested = allowed[0]
+
     recent_blocked = recent_used[-avoid_last_n:] if recent_used else []
+
+    if suggested not in recent_blocked:
+        return suggested
 
     for tactic in allowed:
         if tactic not in recent_blocked:
             return tactic
 
-    return allowed[0]
+    return suggested
+
+
+def _extract_labeled_value(raw: str, label: str) -> str:
+    pattern = rf"(?im)^\s*{re.escape(label)}\s*:\s*(.+?)\s*$"
+    match = re.search(pattern, raw)
+    if match:
+        return match.group(1).strip()
+    return ""
+
+
+def parse_director_text(
+    raw_text: str,
+    scenario: Dict[str, Any],
+    recent_user_suggested_tactics: List[str],
+    recent_actor_tactics: List[str],
+) -> Dict[str, Any]:
+    inferred = _extract_labeled_value(raw_text, "USER_TACTIC_INFERRED") or "none yet"
+    suggested_user = _extract_labeled_value(raw_text, "USER_TACTIC_SUGGESTED") or scenario["user_tactics"][0]
+    actor_tactic = _extract_labeled_value(raw_text, "ACTOR_TACTIC") or scenario["actor_tactics"][0]
+    evidence = _extract_labeled_value(raw_text, "EVIDENCE") or ""
+    director_note = _extract_labeled_value(raw_text, "DIRECTOR_NOTE_FOR_ACTOR") or raw_text.strip()
+
+    if inferred != "none yet" and inferred not in scenario["user_tactics"]:
+        inferred = "none yet"
+
+    suggested_user = choose_diverse_tactic(
+        suggested=suggested_user,
+        allowed=scenario["user_tactics"],
+        recent_used=recent_user_suggested_tactics,
+        avoid_last_n=2,
+    )
+
+    actor_tactic = choose_diverse_tactic(
+        suggested=actor_tactic,
+        allowed=scenario["actor_tactics"],
+        recent_used=recent_actor_tactics,
+        avoid_last_n=2,
+    )
+
+    if not director_note:
+        director_note = (
+            f"Use {actor_tactic} to pursue your expressed goal openly while subtly protecting your hidden goal. "
+            f"Do not resolve the conflict quickly."
+        )
+
+    return {
+        "raw_text": raw_text.strip(),
+        "user_tactic_inferred": inferred,
+        "user_tactic_suggested": suggested_user,
+        "actor_tactic": actor_tactic,
+        "evidence": evidence,
+        "director_note_for_actor": director_note,
+        "director_message_for_actor": raw_text.strip() if raw_text.strip() else director_note,
+    }
 
 
 # =========================================================
@@ -248,42 +320,45 @@ def director_step(
     messages: List[Dict[str, str]],
     recent_user_suggested_tactics: List[str],
     recent_actor_tactics: List[str],
-    opening_line: bool = False,
-) -> Dict[str, str]:
+) -> Dict[str, Any]:
     recent = recent_history(messages, DIRECTOR_RECENT_TURNS)
 
-    user_tactic_suggested = choose_diverse_tactic(
-        allowed=scenario["user_tactics"],
-        recent_used=recent_user_suggested_tactics,
-        avoid_last_n=2,
-    )
-
-    actor_tactic = choose_diverse_tactic(
-        allowed=scenario["actor_tactics"],
-        recent_used=recent_actor_tactics,
-        avoid_last_n=2,
-    )
-
-    opening_instruction = (
-        "This is the first line of the scene. Begin naturally, without dumping the whole conflict immediately."
-        if opening_line
-        else "Respond directly to the user's latest line."
-    )
-
     system_prompt = f"""
-You are the speaking improv partner in a two-person Active Analysis scene.
+You are DirectorLLM for a two-person Active Analysis improvisation system.
 
-You do NOT output JSON.
-You directly produce the next spoken line that will be shown to the user.
+Your job:
+1. Read the recent conversation history.
+2. Infer the USER's current tactic from the allowed user tactics.
+3. Choose ONE USER tactic suggestion for the user's next move.
+4. Choose ONE ACTOR tactic for the actor's next move.
+5. Write a short piece of acting advice for ActorLLM.
+
+Important:
+ 
+- Use Active Analysis style thinking.
+- Focus on playable actions, not emotions or labels.
+- Base your judgment on the near conversation history.
+- Choose tactics only from the allowed tactic lists.
+- The user suggestion should be a plausible next tactic for the user.
+- The actor tactic should respond to the current interaction and support the actor's goals and be complementary to user tactic.
+- Keep the tension alive.
+- Do not guide the actor toward agreement, surrender, or fast resolution.
+- The actor should resist, complicate, redirect, challenge, or delay when possible.
+- Guide the Actor to manipulate the user with the hidden goal, do not explicitly surface hidden goal unless it is necessary
+- The actor's hidden goal should influence the next move, through subtext and choice of tactic.
+- Prefer diversity in tactic guidance.
+- Give creative guidance to Actor such that the interaction is very entertaining for the audience. 
 
 Scenario:
-{scenario['prompt']}
+Prompt: {scenario['prompt']}
+User role: {scenario['user_role']}
+Actor role: {scenario['actor_role']}
 
-Actor role:
-{scenario['actor_role']}
+User impelling action:
+{scenario['user_impelling_action']}
 
-User role:
-{scenario['user_role']}
+Allowed user tactics:
+{json.dumps(scenario['user_tactics'], ensure_ascii=False)}
 
 Actor expressed goal:
 {scenario['actor_expressed_goal']}
@@ -291,39 +366,30 @@ Actor expressed goal:
 Actor hidden goal:
 {scenario['actor_hidden_goal'] if scenario['actor_hidden_goal'] else "None"}
 
-Current actor tactic:
-{actor_tactic}
+Allowed actor tactics:
+{json.dumps(scenario['actor_tactics'], ensure_ascii=False)}
 
-User impelling action:
-{scenario['user_impelling_action']}
+Recent user tactic suggestions to avoid repeating unless necessary:
+{format_recent_tactics(recent_user_suggested_tactics, "user")}
 
-Suggested user tactic for next move:
-{user_tactic_suggested}
+Recent actor tactics to avoid repeating unless necessary:
+{format_recent_tactics(recent_actor_tactics, "actor")}
 
-Rules:
-- Stay fully in character.
-- Output only the exact line to say next.
-- Do not output JSON.
-- Do not explain yourself.
-- Use 1-3 sentences.
-- Sound natural, vivid, and human.
-- Keep tension alive.
-- Do not resolve the conflict quickly.
-- Resist, complicate, redirect, challenge, or pressure the user.
-- Let the hidden goal shape the line subtly.
-- Do not mention tactics by name.
-- Do not narrate actions.
-- {opening_instruction}
+Return exactly in this plain-text format:
+
+USER_TACTIC_INFERRED: <one tactic from allowed user tactics or none yet>
+USER_TACTIC_SUGGESTED: <one tactic from allowed user tactics>
+ACTOR_TACTIC: <one tactic from allowed actor tactics>
+EVIDENCE: <brief explanation based on recent lines>
+DIRECTOR_NOTE_FOR_ACTOR: <1 short sentence of acting advice for the actor, preserving tension and using subtext>
 """.strip()
 
     user_prompt = f"""
 Recent conversation history:
 {format_history(recent)}
-
-Write the next line for the {scenario['actor_role']}.
 """.strip()
 
-    line = call_gpt_text(
+    raw_text = call_gpt_text(
         client=client,
         system_prompt=system_prompt,
         user_prompt=user_prompt,
@@ -331,12 +397,83 @@ Write the next line for the {scenario['actor_role']}.
         top_p=DIRECTOR_TOP_P,
     )
 
-    if not line:
-        line = "We need to talk about this."
+    return parse_director_text(
+        raw_text=raw_text,
+        scenario=scenario,
+        recent_user_suggested_tactics=recent_user_suggested_tactics,
+        recent_actor_tactics=recent_actor_tactics,
+    )
 
-    return {
-        "line": line,
-        "actor_tactic": actor_tactic,
-        "user_tactic_suggested": user_tactic_suggested,
-        "user_tactic_inferred": "none yet",
-    }
+
+# =========================================================
+# ACTOR
+# =========================================================
+
+def actor_reply(
+    client: OpenAI,
+    scenario: Dict[str, Any],
+    messages: List[Dict[str, str]],
+    actor_tactic: str,
+    director_note_for_actor: str,
+    opening_line: bool = False,
+) -> str:
+    opening_instruction = (
+        "This is the first line of the scene. Begin naturally, as if the conversation is just starting. Do not state the whole conflict immediately."
+        if opening_line
+        else "Respond directly to the user's latest line."
+    )
+
+    system_prompt = f"""
+You are ActorLLM playing the role of the {scenario['actor_role']}.
+
+Scene prompt:
+{scenario['prompt']}
+
+Your expressed goal:
+{scenario['actor_expressed_goal']}
+
+Your hidden goal:
+{scenario['actor_hidden_goal'] if scenario['actor_hidden_goal'] else "None"}
+
+Your current tactic:
+{actor_tactic}
+
+Director advice:
+{director_note_for_actor}
+
+Rules:
+- Stay fully in character.
+- Speak naturally like a real person.
+- Use only 1-3 sentences.
+- Do not mention "Actor:" in your response, just give the line
+- Be creative in your response and open up new directions
+- Do not mention tactics by name.
+- Do not narrate actions.
+- Bring up the main topic naturally.
+- On the surface, pursue the expressed goal.
+- Let the hidden goal influence what you push, what you avoid admitting, and the pressure you apply.
+- Do not agree too quickly.
+- Do not give the user what they want early in the scene.
+- Resist, complicate, redirect, challenge, or delay rather than settling the issue.
+- Even if you soften, keep friction alive.
+- {opening_instruction}
+""".strip()
+
+    user_prompt = f"""
+Conversation so far:
+{format_history(messages)}
+
+Now produce the next line for the {scenario['actor_role']}.
+""".strip()
+
+    text = call_gpt_text(
+        client=client,
+        system_prompt=system_prompt,
+        user_prompt=user_prompt,
+        temperature=ACTOR_TEMPERATURE,
+        top_p=ACTOR_TOP_P,
+    )
+
+    if not text:
+        text = "We need to talk about this."
+    return text
