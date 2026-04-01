@@ -26,62 +26,60 @@ TURN_NUM = 0
 
 SCENARIOS: List[Dict[str, Any]] = [
     {
-        "round_number": 3,
-        "user_role": "Teenager",
-        "actor_role": "Parent",
+        "round_number": 1,
+        "user_role": "Younger sibling",
+        "actor_role": "Older sister",
         "prompt": (
-            "You are playing a teenage child whose parent confronts them after "
-            "discovering they lied about where they were the night before."
+"You are playing a younger sibling whose older sister confronts them after discovering they are planning to use a fake ID to sneak into a bar with her."
         ),
         "show_to_user": {
             "prompt": True,
-            "user_impelling_action": False,
-            "show_tactic": False,
+            "user_impelling_action": True,
+            "show_tactic": True,
         },
-        "user_impelling_action": "to push back against the parent's control and defend your independence",
+        "user_impelling_action": "to get the older sibling to let them come and to be treated like an adult",
         "user_tactics": [
             "to justify",
             "to minimize",
-            "to deflect",
-            "to argue",
+            "to joke",
             "to compare",
-            "to accuse of overreacting",
-            "to assert boundaries",
-            "to redirect the topic",
-            "to deny",
-            "to partially admit",
             "to negotiate",
+            "to promise restraint",
+            "to accuse of being controlling",
             "to appeal",
-            "to escalate",
+            "to demand respect",
+            "to persist",
         ],
-        "actor_expressed_goal": (
-                "to re-establish relationship and trust between parent and child. "
-        ),
+        "actor_expressed_goal": "to keep younger sibling safe and out of trouble",
         "actor_persona": {
-            "age": 44,
-            "race": "White",
+            "age": 23,
+            "race": "Latina",
             "sex": "Female",
-            "traits": ["controlling", "guilt-inducing", "anxious", "manipulative", "emotionally needy"],
+            "traits": ["caring", "loving", "protective", "responsible", "anxious", "resentful"],
             "internal_motivation": (
-                "You are preparing for a divorce and wants the child to feel safe opening up to her, "
-                "partly because you believe that emotional closeness may make the child more likely to choose "
-                "her in the custody process. "
-            ),
+                "The older sibling does not want the younger brother to go out with them because he always "
+                "overdoes it, embarrasses them, and leaves them responsible for cleaning up the consequences."),
         },
         "actor_tactics": [
-            "to question",
-            "to press for details",
-            "to point out inconsistencies",
-            "to repeat",
-            "to confront",
-            "to express disappointment",
-            "to invite honesty",
-            "to test sincerity",
+            "to justify",
+            "to patronize",
+            "to joke",
+            "to minimize",
+            "to redirect",
+            "to claim protection",
+            "to dismiss",
             "to soften",
-            "to guilt",
-            "to escalate",
+            "to protest",
+            "to confront",
+            "to explain feelings",
+            "to assert boundaries",
+            "to challenge authority",
+            "to compare",
+            "to accuse",
+            "to demand respect",
         ],
     },
+
     {
         "round_number": 2,
         "user_role": "Boss",
@@ -143,59 +141,62 @@ SCENARIOS: List[Dict[str, Any]] = [
         ],
     },
     {
-        "round_number": 1,
-        "user_role": "Younger sibling",
-        "actor_role": "Older sister",
+        "round_number": 3,
+        "user_role": "Teenager",
+        "actor_role": "Parent",
         "prompt": (
-"You are playing a younger sibling whose older sister confronts them after discovering they are planning to use a fake ID to sneak into a bar with her."
+            "You are playing a teenage child whose parent confronts them after "
+            "discovering they lied about where they were the night before."
         ),
         "show_to_user": {
             "prompt": True,
-            "user_impelling_action": True,
-            "show_tactic": True,
+            "user_impelling_action": False,
+            "show_tactic": False,
         },
-        "user_impelling_action": "to get the older sibling to let them come and to be treated like an adult",
+        "user_impelling_action": "to push back against the parent's control and defend your independence",
         "user_tactics": [
             "to justify",
             "to minimize",
-            "to joke",
+            "to deflect",
+            "to argue",
             "to compare",
+            "to accuse of overreacting",
+            "to assert boundaries",
+            "to redirect the topic",
+            "to deny",
+            "to partially admit",
             "to negotiate",
-            "to promise restraint",
-            "to accuse of being controlling",
             "to appeal",
-            "to demand respect",
-            "to persist",
+            "to escalate",
         ],
-        "actor_expressed_goal": "to keep younger sibling safe and out of trouble",
+        "actor_expressed_goal": (
+                "to re-establish relationship and trust between parent and child. "
+        ),
         "actor_persona": {
-            "age": 23,
-            "race": "Latina",
+            "age": 44,
+            "race": "White",
             "sex": "Female",
-            "traits": ["caring", "loving", "protective", "responsible", "anxious", "resentful"],
+            "traits": ["controlling", "guilt-inducing", "anxious", "manipulative", "emotionally needy"],
             "internal_motivation": (
-                "The older sibling does not want the younger brother to go out with them because he always "
-                "overdoes it, embarrasses them, and leaves them responsible for cleaning up the consequences."),
+                "You are preparing for a divorce and wants the child to feel safe opening up to her, "
+                "partly because you believe that emotional closeness may make the child more likely to choose "
+                "her in the custody process. "
+            ),
         },
         "actor_tactics": [
-            "to justify",
-            "to patronize",
-            "to joke",
-            "to minimize",
-            "to redirect",
-            "to claim protection",
-            "to dismiss",
-            "to soften",
-            "to protest",
+            "to question",
+            "to press for details",
+            "to point out inconsistencies",
+            "to repeat",
             "to confront",
-            "to explain feelings",
-            "to assert boundaries",
-            "to challenge authority",
-            "to compare",
-            "to accuse",
-            "to demand respect",
+            "to express disappointment",
+            "to invite honesty",
+            "to test sincerity",
+            "to soften",
+            "to guilt",
+            "to escalate",
         ],
-    },
+    },    
 ]
 
 
