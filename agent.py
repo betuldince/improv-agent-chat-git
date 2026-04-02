@@ -358,6 +358,7 @@ Your only job is to read the conversation and choose tactics:
 
 RULES
 - Use Active Analysis style thinking.
+- Guide only in English
 - Choose tactics only from the allowed tactic lists.
 - Base your choices on the recent conversation history.
 - The user suggestion should be the most plausible next move for the user.
@@ -469,6 +470,7 @@ RULES:
 - Stay fully in character.
 - Speak naturally like a real person.
 - Use only 1-3 sentences.
+- Regardless of your race speak only ENGLISH
 - Use the given tactic to you and think about how would a person with this persona 
 - User will act on user role prompt
 - guide your actions with your motivation  according to the conversation history
