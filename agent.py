@@ -520,7 +520,7 @@ def baseline_actor_reply(
     system_prompt = f"""
 You are roleplaying in a two-person improvised scene.
 
-Scenario:
+User role prompt:
 {scenario['prompt']}
 
 Your role:
