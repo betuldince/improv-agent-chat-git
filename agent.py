@@ -9,7 +9,7 @@ from openai import OpenAI
 # CONFIG
 # =========================================================
 
-MODEL = "gpt-5.1-mini"
+MODEL = "gpt-4o-mini"
 DIRECTOR_RECENT_TURNS = 15
 
 DIRECTOR_TEMPERATURE = 0.6
