@@ -8,6 +8,7 @@ from agent import (
     create_client,
     director_step,
     actor_reply,
+    baseline_actor_reply,
 )
 from database import save_round_transcripts
 
@@ -80,7 +81,7 @@ def init_condition_from_query_params() -> None:
 
     condition = str(condition).strip().upper()
 
-    if condition in ["A", "B"]:
+    if condition in ["A", "B", "C"]:
         st.session_state.study_condition = condition
     else:
         st.session_state.study_condition = None
@@ -95,6 +96,10 @@ def get_display_scenario():
     scenario["show_to_user"] = scenario["show_to_user"].copy()
 
     if st.session_state.study_condition == "B":
+        scenario["show_to_user"]["user_impelling_action"] = False
+        scenario["show_to_user"]["show_tactic"] = False
+
+    if st.session_state.study_condition == "C":
         scenario["show_to_user"]["user_impelling_action"] = False
         scenario["show_to_user"]["show_tactic"] = False
 
@@ -209,6 +214,23 @@ def transcribe_audio(client, audio_file) -> str:
 # =========================================================
 
 def open_scene_with_actor(client, scenario) -> None:
+    if st.session_state.study_condition == "C":
+        first_line = baseline_actor_reply(
+            client=client,
+            scenario=scenario,
+            messages=[],
+            opening_line=True,
+        )
+
+        st.session_state.last_director_output = None
+        st.session_state.actor_current_tactic = ""
+        st.session_state.user_inferred_tactic = ""
+        st.session_state.user_current_tactic = ""
+        st.session_state.messages.append({"role": "assistant", "content": first_line})
+        st.session_state.opening_done = True
+        st.session_state.round_start_time = time.time()
+        return
+
     director_out = director_step(
         client=client,
         scenario=scenario,
@@ -248,6 +270,23 @@ def open_scene_with_actor(client, scenario) -> None:
 
 def generate_pending_actor_response(client, scenario) -> None:
     if not st.session_state.awaiting_actor_response:
+        return
+
+    if st.session_state.study_condition == "C":
+        actor_text = baseline_actor_reply(
+            client=client,
+            scenario=scenario,
+            messages=st.session_state.messages,
+            opening_line=False,
+        )
+
+        st.session_state.last_director_output = None
+        st.session_state.actor_current_tactic = ""
+        st.session_state.user_inferred_tactic = ""
+        st.session_state.user_current_tactic = ""
+        st.session_state.messages.append({"role": "assistant", "content": actor_text})
+        st.session_state.awaiting_actor_response = False
+        st.session_state.pending_user_text = None
         return
 
     director_out = director_step(
@@ -389,13 +428,13 @@ if not st.session_state.study_started and not st.session_state.study_finished:
         )
     else:
         st.info(
-            "In this study, you will improvise with an AI agent. On the left side of the screen, you will see your assigned role, your AI partner's role, and the scenario you will act out. Your impelling action is your goal in the scene, and your suggested tactic is an action word that may help guide your next dialogue line.\n\n"
+            "In this study, you will improvise with an AI agent. On the left side of the screen, you will see your assigned role, your AI partner’s role, and the scenario for the scene.\n\n"
             "To respond, use the microphone bar under 'Your response':\n"
             "1. Click the mic icon to start recording.\n"
             "2. Speak your response out loud.\n"
             "3. Click the mic icon again to stop recording.\n"
             "4. Wait a moment while your speech is transcribed and sent to your AI improv partner.\n\n"
-            "After some time, the study will move to the next round, where you will receive a different scenario, role, and goal. After 3 rounds, the improvisation part will be over, and you will be asked to return to the Qualtrics tab and enter the generated ID."
+            "After some time, the study will move to the next round, where you will receive a different scenario and role. After 3 rounds, the improvisation part will be over, and you will be asked to return to the Qualtrics tab and enter the generated ID."
         )
 
     if st.button("Start study"):
@@ -413,7 +452,7 @@ if not st.session_state.study_started and not st.session_state.study_finished:
 if st.session_state.study_finished:
     if (
         not st.session_state.results_saved
-        and st.session_state.study_condition in ["A", "B"]
+        and st.session_state.study_condition in ["A", "B", "C"]
     ):
         try:
             save_round_transcripts(

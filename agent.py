@@ -502,3 +502,54 @@ Now produce the next line for the {scenario['actor_role']}.
     if not text:
         text = "We need to talk about this."
     return text
+
+
+
+def baseline_actor_reply(
+    client: OpenAI,
+    scenario: Dict[str, Any],
+    messages: List[Dict[str, str]],
+    opening_line: bool = False,
+) -> str:
+    opening_instruction = (
+        "This is the first line of the scene. Start the interaction naturally."
+        if opening_line
+        else "Respond directly to the user's latest line."
+    )
+
+    system_prompt = f"""
+You are roleplaying in a two-person improvised scene.
+
+Scenario:
+{scenario['prompt']}
+
+Your role:
+{scenario['actor_role']}
+
+Rules:
+- Stay fully in character.
+- Speak naturally like a real person.
+- Use only 1-3 sentences.
+- Do not narrate actions.
+- Do not resolve the conflict too quickly.
+- {opening_instruction}
+""".strip()
+
+    user_prompt = f"""
+Conversation so far:
+{format_history(messages)}
+
+Now produce the next line for the {scenario['actor_role']}.
+""".strip()
+
+    text = call_gpt_text(
+        client=client,
+        system_prompt=system_prompt,
+        user_prompt=user_prompt,
+        temperature=1.0,
+        top_p=0.95,
+    )
+
+    if not text:
+        text = "We need to talk about this."
+    return text
