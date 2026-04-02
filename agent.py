@@ -531,7 +531,7 @@ Rules:
 - Speak naturally like a real person.
 - Use only 1-3 sentences.
 - Do not narrate actions.
-
+- Do not write "Actor:" — just give the line.
 - {opening_instruction}
 """.strip()
 
