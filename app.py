@@ -318,22 +318,7 @@ def render_sidebar(scenario, client) -> None:
             st.write("Suggested tactic for your next move")
             st.info(st.session_state.user_current_tactic or "No suggestion yet.")
 
-        st.markdown("---")
-        if st.button("Next round"):
-            try:
-                move_to_next_round()
 
-                if st.session_state.study_finished:
-                    st.rerun()
-
-                next_scenario = get_current_scenario()
-                with st.spinner("Director is starting the next scene..."):
-                    open_scene_with_actor(client, next_scenario)
-                st.rerun()
-
-            except Exception as e:
-                st.session_state.last_error = f"Next round error: {str(e)}"
-                st.error(st.session_state.last_error)
 
 
 # =========================================================
