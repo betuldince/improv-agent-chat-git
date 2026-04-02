@@ -9,7 +9,7 @@ from openai import OpenAI
 # CONFIG
 # =========================================================
 
-MODEL = "gpt-5.1"
+MODEL = "gpt-5.1-mini"
 DIRECTOR_RECENT_TURNS = 15
 
 DIRECTOR_TEMPERATURE = 0.6
@@ -531,7 +531,7 @@ Rules:
 - Speak naturally like a real person.
 - Use only 1-3 sentences.
 - Do not narrate actions.
-- Do not resolve the conflict too quickly.
+
 - {opening_instruction}
 """.strip()
 
