@@ -91,7 +91,7 @@ SCENARIOS: List[Dict[str, Any]] = [
         ),
         "show_to_user": {
             "prompt": True,
-            "user_impelling_action": False,
+            "user_impelling_action": True,
             "show_tactic": True,
         },
         "user_impelling_action": "to stop problematic behavior",
@@ -150,8 +150,8 @@ SCENARIOS: List[Dict[str, Any]] = [
         ),
         "show_to_user": {
             "prompt": True,
-            "user_impelling_action": False,
-            "show_tactic": False,
+            "user_impelling_action": True,
+            "show_tactic": True,
         },
         "user_impelling_action": "to push back against the parent's control and defend your independence",
         "user_tactics": [
