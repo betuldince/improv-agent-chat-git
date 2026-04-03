@@ -9,7 +9,7 @@ from openai import OpenAI
 # CONFIG
 # =========================================================
 
-MODEL = "gpt-4o-mini"
+MODEL = "gpt-5.1-mini"
 DIRECTOR_RECENT_TURNS = 15
 
 DIRECTOR_TEMPERATURE = 0.6
@@ -199,7 +199,36 @@ SCENARIOS: List[Dict[str, Any]] = [
     },    
 ]
 
+CONDITION_TO_SCENARIO_KEY = {
+    "A": "boss_worker",
+    "B": "parent_teenager",
+    "C": "parent_teenager",
+    "D": "boss_worker",
+}
 
+CONDITION_TO_AGENT_TYPE = {
+    "A": "dummy",
+    "B": "intelligent",
+    "C": "dummy",
+    "D": "intelligent",
+}
+
+
+def get_named_scenarios():
+    return {
+        "boss_worker": SCENARIOS[1],       # round_number 2
+        "parent_teenager": SCENARIOS[2],   # round_number 3
+    }
+
+
+def get_condition_scenario(condition: str):
+    named = get_named_scenarios()
+    scenario_key = CONDITION_TO_SCENARIO_KEY.get(condition)
+    return named.get(scenario_key)
+
+
+def get_condition_agent_type(condition: str) -> str:
+    return CONDITION_TO_AGENT_TYPE.get(condition, "intelligent")
 # =========================================================
 # OPENAI HELPERS
 # =========================================================
@@ -365,6 +394,7 @@ RULES
 - The actor tactic should keep tension alive and resist easy resolution.
 - Prefer diversity — avoid repeating recently used tactics unless the scene demands it.
 - Do NOT write any notes, advice, or explanation for the actor. Tactic selection only.
+- User and Actor tactic should be complemantary to each other
 
 Scenario:
 User role prompt: {scenario['prompt']}

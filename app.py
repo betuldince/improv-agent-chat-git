@@ -4,11 +4,12 @@ import secrets
 import string
 
 from agent import (
-    SCENARIOS,
     create_client,
     director_step,
     actor_reply,
     baseline_actor_reply,
+    get_condition_scenario,
+    get_condition_agent_type,
 )
 from database import save_round_transcripts
 
@@ -38,7 +39,6 @@ def init_state() -> None:
     defaults = {
         "study_started": False,
         "study_finished": False,
-        "current_round_index": 0,
         "messages": [],
         "last_director_output": None,
         "actor_current_tactic": "",
@@ -58,6 +58,8 @@ def init_state() -> None:
         "awaiting_actor_response": False,
         "generated_id": None,
         "results_saved": False,
+        "selected_scenario": None,
+        "agent_type": None,
     }
 
     for key, value in defaults.items():
@@ -81,27 +83,34 @@ def init_condition_from_query_params() -> None:
 
     condition = str(condition).strip().upper()
 
-    if condition in ["A", "B", "C"]:
+    if condition in ["A", "B", "C", "D"]:
         st.session_state.study_condition = condition
     else:
         st.session_state.study_condition = None
 
 
 def get_current_scenario():
-    return SCENARIOS[st.session_state.current_round_index]
+    return st.session_state.selected_scenario
 
 
 def get_display_scenario():
     scenario = get_current_scenario().copy()
     scenario["show_to_user"] = scenario["show_to_user"].copy()
 
-    if st.session_state.study_condition == "B":
+    # Dummy conditions: hide guidance
+    if st.session_state.study_condition in ["A", "C"]:
         scenario["show_to_user"]["user_impelling_action"] = False
         scenario["show_to_user"]["show_tactic"] = False
 
-    if st.session_state.study_condition == "C":
-        scenario["show_to_user"]["user_impelling_action"] = False
-        scenario["show_to_user"]["show_tactic"] = False
+    # Intelligent parent/teenager condition:  r
+    if st.session_state.study_condition == "B":
+        scenario["show_to_user"]["user_impelling_action"] = True
+        scenario["show_to_user"]["show_tactic"] = True
+
+    # Intelligent boss/worker condition: 
+    if st.session_state.study_condition == "D":
+        scenario["show_to_user"]["user_impelling_action"] = True
+        scenario["show_to_user"]["show_tactic"] = True
 
     return scenario
 
@@ -127,41 +136,28 @@ def reset_round_state() -> None:
 def start_study() -> None:
     st.session_state.study_started = True
     st.session_state.study_finished = False
-    st.session_state.current_round_index = 0
     st.session_state.round_logs = []
     st.session_state.generated_id = None
     st.session_state.results_saved = False
-    start_round(0)
 
+    scenario = get_condition_scenario(st.session_state.study_condition)
+    agent_type = get_condition_agent_type(st.session_state.study_condition)
 
-def start_round(round_index: int) -> None:
-    st.session_state.current_round_index = round_index
+    st.session_state.selected_scenario = scenario
+    st.session_state.agent_type = agent_type
+
     reset_round_state()
 
 
 def archive_current_round(reason: str) -> None:
     scenario = get_current_scenario()
-    st.session_state.round_logs.append(
+    st.session_state.round_logs = [
         {
             "round_number": scenario["round_number"],
             "messages": st.session_state.messages.copy(),
+            "end_reason": reason,
         }
-    )
-
-
-def move_to_next_round(reason: str = "manual_next_round") -> None:
-    archive_current_round(reason=reason)
-
-    next_index = st.session_state.current_round_index + 1
-    if next_index >= len(SCENARIOS):
-        st.session_state.study_finished = True
-        st.session_state.study_started = False
-
-        if st.session_state.generated_id is None:
-            st.session_state.generated_id = generate_participant_id()
-        return
-
-    start_round(next_index)
+    ]
 
 
 # =========================================================
@@ -180,14 +176,13 @@ def check_round_timeout(client) -> None:
     remaining = int(ROUND_TIME_LIMIT - elapsed)
 
     if remaining <= 0:
-        move_to_next_round(reason="timer_expired")
+        archive_current_round(reason="timer_expired")
+        st.session_state.study_finished = True
+        st.session_state.study_started = False
 
-        if st.session_state.study_finished:
-            st.rerun()
+        if st.session_state.generated_id is None:
+            st.session_state.generated_id = generate_participant_id()
 
-        next_scenario = get_current_scenario()
-        with st.spinner("Director is starting the next scene..."):
-            open_scene_with_actor(client, next_scenario)
         st.rerun()
 
 
@@ -214,7 +209,7 @@ def transcribe_audio(client, audio_file) -> str:
 # =========================================================
 
 def open_scene_with_actor(client, scenario) -> None:
-    if st.session_state.study_condition == "C":
+    if st.session_state.agent_type == "dummy":
         first_line = baseline_actor_reply(
             client=client,
             scenario=scenario,
@@ -272,7 +267,7 @@ def generate_pending_actor_response(client, scenario) -> None:
     if not st.session_state.awaiting_actor_response:
         return
 
-    if st.session_state.study_condition == "C":
+    if st.session_state.agent_type == "dummy":
         actor_text = baseline_actor_reply(
             client=client,
             scenario=scenario,
@@ -337,9 +332,9 @@ def render_conversation(scenario) -> None:
             st.write(f"{speaker}: {msg['content']}")
 
 
-def render_sidebar(scenario, client) -> None:
+def render_sidebar(scenario) -> None:
     with st.sidebar:
-        st.subheader(f"Round {scenario['round_number']} of {len(SCENARIOS)}")
+        st.subheader("Assigned scenario")
         st.write(f"Your role: {scenario['user_role']}")
         st.write(f"Improv Agent role: {scenario['actor_role']}")
 
@@ -356,8 +351,6 @@ def render_sidebar(scenario, client) -> None:
             st.markdown("---")
             st.write("Suggested tactic for your next move")
             st.info(st.session_state.user_current_tactic or "No suggestion yet.")
-
-
 
 
 # =========================================================
@@ -404,44 +397,61 @@ client = create_client(st.secrets["OPENAI_API_KEY"])
 st.title("Improv Agent Study")
 
 if not st.session_state.study_started and not st.session_state.study_finished:
-    st.write("This study has 3 rounds.")
+    st.write("You will complete one assigned interaction scenario.")
 
     if st.session_state.study_condition == "A":
         st.info(
-            "In this study, you will improvise with an AI agent. On the left side of the screen, you will see your assigned role, your AI partner's role, and the scenario you will act out. Your impelling action is your goal in the scene, and your suggested tactic is an action word that may help guide your next dialogue line.\n\n"
+            "You have been assigned the Boss/Worker scenario. "
             "To respond, use the microphone bar under 'Your response':\n"
             "1. Click the mic icon to start recording.\n"
             "2. Speak your response out loud.\n"
             "3. Click the mic icon again to stop recording.\n"
-            "4. Wait a moment while your speech is transcribed and sent to your AI improv partner.\n\n"
-            "After some time, the study will move to the next round, where you will receive a different scenario, role, and goal. After 3 rounds, the improvisation part will be over, and you will be asked to return to the Qualtrics tab and enter the generated ID."
+            "4. Wait while your speech is transcribed and sent to the AI agent.\n\n"
+            "At the end, you will receive a generated ID to enter in Qualtrics."
         )
     elif st.session_state.study_condition == "B":
         st.info(
-            "In this study, you will improvise with an AI agent. On the left side of the screen, you will see your assigned role, your AI partner's role, and the scenario for the scene.\n\n"
+            "You have been assigned the Parent/Teenager scenario. "
             "To respond, use the microphone bar under 'Your response':\n"
             "1. Click the mic icon to start recording.\n"
             "2. Speak your response out loud.\n"
             "3. Click the mic icon again to stop recording.\n"
-            "4. Wait a moment while your speech is transcribed and sent to your AI improv partner.\n\n"
-            "After some time, you will move to the next round, where you will receive a different scenario, role, and goal. After 3 rounds, the improvisation part will be over, and you will be asked to return to the Qualtrics tab and enter the generated ID."
+            "4. Wait while your speech is transcribed and sent to the AI agent.\n\n"
+            "At the end, you will receive a generated ID to enter in Qualtrics."
+        )
+    elif st.session_state.study_condition == "C":
+        st.info(
+            "You have been assigned the Parent/Teenager scenario. "
+            "To respond, use the microphone bar under 'Your response':\n"
+            "1. Click the mic icon to start recording.\n"
+            "2. Speak your response out loud.\n"
+            "3. Click the mic icon again to stop recording.\n"
+            "4. Wait while your speech is transcribed and sent to the AI agent.\n\n"
+            "At the end, you will receive a generated ID to enter in Qualtrics."
+        )
+    elif st.session_state.study_condition == "D":
+        st.info(
+            "You have been assigned the Boss/Worker scenario. "
+            "To respond, use the microphone bar under 'Your response':\n"
+            "1. Click the mic icon to start recording.\n"
+            "2. Speak your response out loud.\n"
+            "3. Click the mic icon again to stop recording.\n"
+            "4. Wait while your speech is transcribed and sent to the AI agent.\n\n"
+            "At the end, you will receive a generated ID to enter in Qualtrics."
         )
     else:
-        st.info(
-            "In this study, you will improvise with an AI agent. On the left side of the screen, you will see your assigned role, your AI partner’s role, and the scenario for the scene.\n\n"
-            "To respond, use the microphone bar under 'Your response':\n"
-            "1. Click the mic icon to start recording.\n"
-            "2. Speak your response out loud.\n"
-            "3. Click the mic icon again to stop recording.\n"
-            "4. Wait a moment while your speech is transcribed and sent to your AI improv partner.\n\n"
-            "After some time, the study will move to the next round, where you will receive a different scenario and role. After 3 rounds, the improvisation part will be over, and you will be asked to return to the Qualtrics tab and enter the generated ID."
-        )
+        st.warning("Condition not recognized. Use ?condition=A, ?condition=B, ?condition=C, or ?condition=D in the URL.")
 
     if st.button("Start study"):
         try:
             start_study()
+
+            if st.session_state.selected_scenario is None or st.session_state.agent_type is None:
+                st.error("Invalid condition mapping. Check your agent.py condition helpers.")
+                st.stop()
+
             scenario = get_current_scenario()
-            with st.spinner("Director is starting the scene..."):
+            with st.spinner("Starting the scene..."):
                 open_scene_with_actor(client, scenario)
             st.rerun()
         except Exception as e:
@@ -452,7 +462,7 @@ if not st.session_state.study_started and not st.session_state.study_finished:
 if st.session_state.study_finished:
     if (
         not st.session_state.results_saved
-        and st.session_state.study_condition in ["A", "B", "C"]
+        and st.session_state.study_condition in ["A", "B", "C", "D"]
     ):
         try:
             save_round_transcripts(
@@ -486,7 +496,7 @@ if st.session_state.study_finished:
 scenario = get_display_scenario()
 
 if st.session_state.awaiting_actor_response:
-    render_sidebar(scenario, client)
+    render_sidebar(scenario)
     st.divider()
     render_conversation(scenario)
 
@@ -497,7 +507,7 @@ if st.session_state.awaiting_actor_response:
 
 check_round_timeout(client)
 
-render_sidebar(scenario, client)
+render_sidebar(scenario)
 
 st.divider()
 render_conversation(scenario)
@@ -507,7 +517,7 @@ st.caption("Click the mic icon to start, click it again to stop, then wait for t
 
 audio_value = st.audio_input(
     f"Record your reply as the {scenario['user_role']}",
-    key=f"audio_input_round_{scenario['round_number']}_{st.session_state.audio_input_version}",
+    key=f"audio_input_condition_{st.session_state.study_condition}_{st.session_state.audio_input_version}",
 )
 
 if audio_value is not None:
